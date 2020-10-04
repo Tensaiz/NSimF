@@ -8,7 +8,6 @@ __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
 class ContinuousModel(Model):
-
     def iteration(self):
         for update in self.updates:
             updatables = update.execute()

@@ -4,24 +4,15 @@ import copy
 import numpy as np
 import networkx as nx
 
+from nsimfw.models.Update import Update
+from nsimfw.models.Visualizer import VisualizationConfiguration
+from nsimfw.models.Visualizer import Visualizer
+
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
 class ConfigurationException(Exception):
     """Configuration Exception"""
-
-class Update(object):
-    """
-    Update class
-    """
-
-    def __init__(self, fun, args={}, condition=None):
-        self.function = fun
-        self.arguments = args
-        self.condition = condition
-
-    def execute(self):
-        return self.function(**self.arguments)
 
 class Model(object, metaclass=ABCMeta):
     """
@@ -62,8 +53,23 @@ class Model(object, metaclass=ABCMeta):
     def get_state(self, state):
         return self.node_states[:, self.state_map[state]]
 
+    def get_node_states(self, node):
+        return self.node_states[node]
+
+    def get_node_state(self, node, state):
+        return self.node_states[node, self.state_map[state]]
+
     def add_update(self, fun, args={}, condition=None):
         self.updates.append(Update(fun, args, condition))
+
+    def get_all_neighbors(self):
+        neighbors = []
+        for node in list(self.graph.nodes()):
+            neighbors.append(self.graph.neighbors(node))
+        return neighbors
+
+    def get_neighbors(self, node):
+        return self.graph.neighbors(node)
 
     def simulate(self, n, show_tqdm=True):
         simulation_output = []
@@ -80,6 +86,13 @@ class Model(object, metaclass=ABCMeta):
     @abstractmethod
     def iteration(self):
         pass
+
+    def configure_visualization(self, options, output):
+        configuration = VisualizationConfiguration(options)
+        self.visualizer = Visualizer(configuration, self.graph, self.state_map, output)
+
+    def visualize(self, vis_type):
+        self.visualizer.visualize(vis_type)
 
     def clear(self):
         self.state_map = {}

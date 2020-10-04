@@ -46,7 +46,14 @@ def update_S(constants):
     return {'S': craving_control_model.get_state('S') + constants['p'] * np.maximum(0, constants['S+'] - craving_control_model.get_state('S')) - constants['h'] * craving_control_model.get_state('C') - constants['k'] * craving_control_model.get_state('A')}
 
 def update_E(constants):
-    return {'E': craving_control_model.get_state('E') - 0.015}
+    # return {'E': craving_control_model.get_state('E') - 0.015}
+    e = np.zeros(len(craving_control_model.nodes))
+    for i, node in enumerate(craving_control_model.nodes):
+        neighbor_addiction = 0
+        for neighbor in craving_control_model.get_neighbors(node):
+            neighbor_addiction += craving_control_model.get_node_state(neighbor, 'A')
+        e[i] = neighbor_addiction / 50
+    return {'E': np.maximum(-1.5, craving_control_model.get_state('E') - e)} # Custom calculation
 
 def update_V(constants):
     return {'V': np.minimum(1, np.maximum(0, craving_control_model.get_state('C')-craving_control_model.get_state('S')-craving_control_model.get_state('E')))}
@@ -73,7 +80,7 @@ craving_control_model.set_initial_state(initial_state, {'constants': craving_con
 # Simulation
 iterations = craving_control_model.simulate(100)
 
-################### VISUALIZATION ###################
+################### Custom plot ###################
 
 A = [np.mean(it[:, 5]) for it in iterations]
 C = [np.mean(it[:, 0]) for it in iterations]
@@ -103,3 +110,25 @@ plt.plot(x, V, label='V')
 plt.legend()
 
 plt.show()
+
+################### VISUALIZATION ###################
+
+visualization_config = {
+    'plot_interval': 2,
+    'plot_variable': 'A',
+    'color_scale': 'RdBu',
+    'variable_limits': {
+        'A': [0, 0.8],
+        'lambda': [0.5, 1.5],
+        'C': [-1, 1],
+        'V': [-1, 1],
+        'E': [-1, 1],
+        'S': [-1, 1]
+    },
+    'show_plot': True,
+    # 'plot_output': '../animations/c_vs_s.gif',
+    'plot_title': 'Self control vs craving simulation',
+}
+
+craving_control_model.configure_visualization(visualization_config, iterations)
+craving_control_model.visualize('animation')
