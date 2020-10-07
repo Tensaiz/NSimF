@@ -93,25 +93,33 @@ class Model(object, metaclass=ABCMeta):
     def iteration(self):
         # For every scheme
         for scheme in self.schemes:
-            if scheme.lower_bound and scheme.lower_bound > self.current_iteration:
-                continue
-            if scheme.upper_bound and scheme.upper_bound <= self.current_iteration:
+            if self.inactive_scheme(scheme):
                 continue
             nodes = scheme.sample()
             # For all the updates in the scheme
             for update in scheme.updates:
                 if update.get_nodes:
-                     updatables = update.execute(nodes)
+                    updatables = update.execute(nodes)
                 else:
                     updatables = update.execute()
-                for state, update_output in updatables.items():
-                    if isinstance(update_output, list) or isinstance(update_output, np.ndarray):
-                        self.node_states[nodes, self.state_map[state]] = update_output
-                    elif isinstance(update_output, dict):
-                        for node, values in update_output.items():
-                            self.node_states[node, self.state_map[state]] = values
+                self.update_state(nodes, updatables)
         self.current_iteration += 1
         return self.node_states
+
+    def update_state(self, nodes, updatables):
+        for state, update_output in updatables.items():
+            if isinstance(update_output, list) or isinstance(update_output, np.ndarray):
+                self.node_states[nodes, self.state_map[state]] = update_output
+            elif isinstance(update_output, dict):
+                for node, values in update_output.items():
+                    self.node_states[node, self.state_map[state]] = values
+
+    def inactive_scheme(self, scheme):
+        if scheme.lower_bound and scheme.lower_bound > self.current_iteration:
+            return True
+        elif scheme.upper_bound and scheme.upper_bound <= self.current_iteration:
+            return True
+        return False
 
     def configure_visualization(self, options, output):
         configuration = VisualizationConfiguration(options)
