@@ -34,16 +34,16 @@
 - [ ] Optimize animation if possible
 
 ## Testing
-- [~] Write tests
+- [-] Write tests
 
 ## Documentation
-- [ ] Implement ReadTheDocs
+- [x] Implement ReadTheDocs
 - [ ] Document code
 
 ## DevOps
 - [x] Add CI support
 - [x] Add code quality checking
-- [ ] Add automatic coverage checking
+- [x] Add automatic coverage checking
 - [ ] Create contribution and pull request templates
 
 ## Package

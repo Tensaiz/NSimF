@@ -14,7 +14,6 @@ The Network Simulation Framework can be used to create any network-based simulat
 Read the documentation on [ReadTheDocs](http://nsimf.readthedocs.io).
 
 
-
 ## Installation
 
 To install the library just download (or clone) the current project and copy the nsimf folder in the root of your application.
@@ -36,10 +35,6 @@ For examples, tutorials and a complete reference visit the project documentation
 ``NSimF`` is an active open-source project, any contribution is welcome!
 
 If you like to include your model in NSimF feel free to fork the project, open an issue and contact us.
-
-
-
-## Contact
 
 Do you want to be part of the NSimF? Join the community to discuss enhancements, bugs, concepts or any other topic on **Slack**!
 
