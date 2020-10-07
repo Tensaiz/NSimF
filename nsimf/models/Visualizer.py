@@ -72,7 +72,7 @@ class Visualizer(object):
         }
         visualizations[vis_type]()
 
-    def animation(self):
+    def setup_animation(self):
         state_names = list(self.state_map.keys())
         n_states = len(state_names)
 
@@ -98,6 +98,11 @@ class Visualizer(object):
         vmin = self.config.variable_limits[self.config.plot_variable][0]
         vmax = self.config.variable_limits[self.config.plot_variable][1]
         colors = cm(np.linspace(0, 1, 25))
+        return state_names, n_states, node_colors, fig, gs, network, axis, n, cm, vmin, vmax, colors
+
+    def animation(self):
+        state_names, n_states, node_colors, fig, gs, network, axis, n, cm, vmin, vmax, colors = \
+            self.setup_animation()
 
         def animate(curr):
             index = curr * self.config.plot_interval
