@@ -13,7 +13,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 
 setup(name='nsimf',
-      version='0.2.2',
+      version='0.2.3',
       license='BSD-Clause-2',
       description='Network Simulation Framework',
       url='https://github.com/Tensaiz/NSimF',

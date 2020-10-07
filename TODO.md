@@ -6,6 +6,7 @@
 
 ## Model
 - [x] Create scheme class
+- [ ] Element wise neighbours / adjencency matrix
 - [ ] Create built-in conditions
 - [ ] Add custom metric function support
 - [ ] Add non-array support
