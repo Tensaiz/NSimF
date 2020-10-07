@@ -111,7 +111,7 @@ class Model(object, metaclass=ABCMeta):
             if isinstance(update_output, list) or isinstance(update_output, np.ndarray):
                 self.node_states[nodes, self.state_map[state]] = update_output
             elif isinstance(update_output, dict):
-                #TODO 2d array
+                # Add a 2d array implementation instead of for loop
                 for node, values in update_output.items():
                     self.node_states[node, self.state_map[state]] = values
 
