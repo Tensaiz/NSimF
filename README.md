@@ -7,7 +7,7 @@
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/Tensaiz/NSimF.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Tensaiz/NSimF/context:python)
 [![PyPI download month](https://img.shields.io/pypi/dm/nsimf.svg?color=blue&style=plastic)](https://pypi.python.org/pypi/nsimf/)
 
-<img src="docs/mock_logo.png" alt="NSimF logo" height="200"/>
+<img src="https://github.com/Tensaiz/NSimF/blob/core-features/docs/mock_logo.png" alt="NSimF logo" height="200"/>
 
 The Network Simulation Framework can be used to create any network-based simulation, where the nodes require continuous states.
 
@@ -38,4 +38,4 @@ If you like to include your model in NSimF feel free to fork the project, open a
 
 Do you want to be part of the NSimF? Join the community to discuss enhancements, bugs, concepts or any other topic on **Slack**!
 
-[<img align="middle" width="150" src="docs/join_slack.png">](https://join.slack.com/t/networksimula-dur1487/shared_invite/zt-i3d3qcz8-UiCHZ_WHX4f7Dl9aQ6TQMQ)
+[<img align="middle" width="150" src="https://github.com/Tensaiz/NSimF/blob/core-features/docs/join_slack.png">](https://join.slack.com/t/networksimula-dur1487/shared_invite/zt-i3d3qcz8-UiCHZ_WHX4f7Dl9aQ6TQMQ)

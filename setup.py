@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from codecs import open
 from os import path
 
@@ -35,5 +35,6 @@ setup(name='nsimf',
       keywords='networks simulator network-of-networks analysis',
       long_description=long_description,
       long_description_content_type='text/markdown',
+      packages=find_packages(exclude=["*.test", "*.test.*", "test.*", "test", "nsimf.test", "nsimf.test.*"]),
       install_requires=['numpy', 'networkx', 'tqdm', 'pyintergraph', 'python-igraph', 'pillow', 'sphinx-rtd-theme', 'pytest', 'salib'],
       )
