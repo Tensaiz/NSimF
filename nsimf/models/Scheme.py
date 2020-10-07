@@ -2,7 +2,7 @@ __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
 from typing import Callable, List
-from nsimfw.models.Update import Update
+from nsimf.models.Update import Update
 
 
 class Scheme(object):

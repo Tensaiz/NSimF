@@ -1,6 +1,6 @@
 import unittest
 
-from nsimfw.models.Model import Model
+from nsimf.models.Model import Model
 
 import networkx as nx
 import numpy as np

@@ -1,6 +1,7 @@
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
+
 class Update(object):
     """
     Update class

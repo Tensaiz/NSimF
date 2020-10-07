@@ -1,7 +1,7 @@
 import unittest
 
-from nsimfw.models.Scheme import Scheme
-from nsimfw.models.Update import Update
+from nsimf.models.Scheme import Scheme
+from nsimf.models.Update import Update
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"

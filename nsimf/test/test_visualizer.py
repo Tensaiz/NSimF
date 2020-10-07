@@ -1,6 +1,6 @@
 import unittest
 
-# from nsimfw.models.Visualizer import Visualizer
+# from nsimf.models.Visualizer import Visualizer
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"

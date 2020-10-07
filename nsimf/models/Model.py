@@ -3,18 +3,20 @@ import tqdm
 import copy
 import numpy as np
 
-from nsimfw.models.Update import Update
-from nsimfw.models.Scheme import Scheme
-from nsimfw.models.Visualizer import VisualizationConfiguration
-from nsimfw.models.Visualizer import Visualizer
+from nsimf.models.Update import Update
+from nsimf.models.Scheme import Scheme
+from nsimf.models.Visualizer import VisualizationConfiguration
+from nsimf.models.Visualizer import Visualizer
 
 from typing import List
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
+
 class ConfigurationException(Exception):
     """Configuration Exception"""
+
 
 class Model(object, metaclass=ABCMeta):
     """
