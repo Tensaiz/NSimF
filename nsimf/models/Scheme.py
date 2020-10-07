@@ -10,16 +10,10 @@ class Scheme(object):
                  lower_bound: int = None, upper_bound: int = None,
                  updates: list = None):
         self.sample_function: Callable = sample_function
-        if args:
-            self.args: dict = args
-        else:
-            self.args = {}
+        self.args: dict = args if args else {}
         self.lower_bound: int = lower_bound
         self.upper_bound: int = upper_bound
-        if updates:
-            self.updates: List[Update] = updates
-        else:
-            self.updates = []
+        self.updates: List[Update] = updates if updates else []
 
     def add_update(self, update: Update) -> None:
         self.updates.append(update)
