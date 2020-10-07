@@ -9,6 +9,7 @@
 - [ ] Create built-in conditions
 - [ ] Add custom metric function support
 - [ ] Add non-array support
+- [ ] Check slow neighbour check for large networks
 
 ## Update
 - [ ] Add support for conditions
