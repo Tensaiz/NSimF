@@ -132,7 +132,7 @@ class Visualizer(object):
             network.get_yaxis().set_ticks([])
             network.set_title('Iteration: ' + str(index))
 
-        ani = animation.FuncAnimation(fig, animate, n, interval=50, 
+        ani = animation.FuncAnimation(fig, animate, n, interval=200, 
                                       repeat=True, blit=False)
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
