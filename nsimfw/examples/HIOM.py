@@ -1,12 +1,11 @@
 import networkx as nx
 import numpy as np
-import matplotlib.pyplot as plt
 
 from nsimfw.models.Model import Model
 from nsimfw.models.Scheme import Scheme
 from nsimfw.models.Update import Update
 
-################### MODEL SPECIFICATIONS ###################
+# MODEL SPECIFICATIONS
 
 n = 400
 
@@ -27,11 +26,14 @@ constants = {
     'N': n
 }
 
+
 def initial_I(constants):
     return np.random.normal(0, 0.3, constants['N'])
 
+
 def initial_O(constants):
     return np.random.normal(0, 0.2, constants['N'])
+
 
 initial_state = {
     'I': initial_I,
@@ -53,21 +55,25 @@ def update_I_A(nodes, constants):
         node_A = HIOM.get_node_state(node, 'A') + constants['d_A'] * (2 * constants['A_star'] - HIOM.get_node_state(node, 'A'))
         nb_A = HIOM.get_node_state(nb, 'A') + constants['d_A'] * (2 * constants['A_star'] - HIOM.get_node_state(nb, 'A'))
         return {'I': [inf], 'A': {node: node_A, nb: nb_A}}
-    return
+
 
 def update_A(constants):
     return {'A': HIOM.get_state('A') - 2 * constants['d_A'] * HIOM.get_state('A')/constants['N']}
+
 
 def update_O(constants):
     noise = np.random.normal(0, constants['s_O'], constants['N'])
     x = HIOM.get_state('O') - constants['dt'] * (HIOM.get_state('O')**3 - (HIOM.get_state('A') + constants['A_min']) * HIOM.get_state('O') - HIOM.get_state('I')) + noise
     return {'O': x}
 
+
 def shrink_I():
     return {'I': HIOM.get_state('I') * 0.999}
 
+
 def shrink_A():
     return {'A': HIOM.get_state('A') * 0.999}
+
 
 def sample_attention_weighted(graph):
     probs = []
@@ -76,6 +82,7 @@ def sample_attention_weighted(graph):
     for a in A:
         probs.append(a * factor)
     return np.random.choice(graph.nodes, size=1, replace=False, p=probs)
+
 
 # Model definition
 HIOM.constants = constants
@@ -95,11 +102,11 @@ HIOM.add_update(update_O, {'constants': HIOM.constants})
 
 HIOM.set_initial_state(initial_state, {'constants': HIOM.constants})
 
-################### SIMULATION ###################
+# SIMULATION
 
 iterations = HIOM.simulate(15000)
 
-################### VISUALIZATION ###################
+# VISUALIZATION
 
 # Visualization config
 visualization_config = {

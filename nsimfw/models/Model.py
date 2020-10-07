@@ -1,15 +1,14 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 import tqdm
 import copy
 import numpy as np
-import networkx as nx
 
 from nsimfw.models.Update import Update
 from nsimfw.models.Scheme import Scheme
 from nsimfw.models.Visualizer import VisualizationConfiguration
 from nsimfw.models.Visualizer import Visualizer
 
-from typing import Dict, List
+from typing import List
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"

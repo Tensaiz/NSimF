@@ -10,8 +10,10 @@ import matplotlib.animation as animation
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
+
 class VisualizationConfigurationException(Exception):
     """Configuration Exception"""
+
 
 class VisualizationConfiguration(object):
     """
@@ -24,6 +26,7 @@ class VisualizationConfiguration(object):
 
     def validate(self):
         pass
+
 
 class Visualizer(object):
     """
@@ -45,16 +48,21 @@ class Visualizer(object):
                 Graph = pyintergraph.InterGraph.from_networkx(self.graph)
                 G = Graph.to_igraph()
                 layout = G.layout_fruchterman_reingold(niter=500)
-                positions = {node: {'pos': location} for node, location in enumerate(layout)}
+                positions = \
+                    {node: {'pos': location}
+                        for node, location in enumerate(layout)}
             else:
                 if 'layout_params' in self.config.__dict__:
-                    pos = self.config.layout(self.graph, **self.config.layout_params)
+                    pos = self.config.layout(self.graph,
+                                             **self.config.layout_params)
                 else:
                     pos = self.config.layout(self.graph)
-                positions = {key: {'pos': location} for key, location in pos.items()}
+                positions = {key: {'pos': location}
+                             for key, location in pos.items()}
         else:
             pos = nx.drawing.spring_layout(self.graph)
-            positions = {key: {'pos': location} for key, location in pos.items()}
+            positions = {key: {'pos': location}
+                         for key, location in pos.items()}
 
         nx.set_node_attributes(self.graph, positions)
 
@@ -70,7 +78,7 @@ class Visualizer(object):
 
         node_colors = self.get_node_colors()
 
-        fig = plt.figure(figsize=(10,9), constrained_layout=True)
+        fig = plt.figure(figsize=(10, 9), constrained_layout=True)
         gs = fig.add_gridspec(6, n_states)
 
         network = fig.add_subplot(gs[:-1, :])
@@ -97,21 +105,30 @@ class Visualizer(object):
             network.clear()
             for i, ax in enumerate(axis):
                 ax.clear()
-                data = self.output[index][:,i]
-                bc = ax.hist(data, range=self.config.variable_limits[state_names[i]], density=1, bins=25, edgecolor='black')[2]
+                data = self.output[index][:, i]
+                bc = ax.hist(data,
+                             range=self.config.variable_limits[state_names[i]],
+                             density=1, bins=25, edgecolor='black')[2]
                 for j, e in enumerate(bc):
                     e.set_facecolor(colors[j])
                 ax.set_title(state_names[i])
 
             pos = nx.get_node_attributes(self.graph, 'pos')
-            nx.draw_networkx_edges(self.graph, pos, alpha=0.2, ax=network)
-            nc = nx.draw_networkx_nodes(self.graph, pos, nodelist=self.graph.nodes, node_color=node_colors[curr], vmin=vmin, vmax=vmax, cmap=cm, node_size=50, ax=network)
+            nx.draw_networkx_edges(self.graph, pos,
+                                   alpha=0.2, ax=network)
+            nc = nx.draw_networkx_nodes(self.graph, pos,
+                                        nodelist=self.graph.nodes,
+                                        node_color=node_colors[curr],
+                                        vmin=vmin, vmax=vmax,
+                                        cmap=cm, node_size=50,
+                                        ax=network)
             nc.set_edgecolor('black')
             network.get_xaxis().set_ticks([])
             network.get_yaxis().set_ticks([])
             network.set_title('Iteration: ' + str(index))
 
-        ani = animation.FuncAnimation(fig, animate, n, interval=50, repeat=True, blit=False)
+        ani = animation.FuncAnimation(fig, animate, n, interval=50, 
+                                      repeat=True, blit=False)
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
         sm = plt.cm.ScalarMappable(cmap=cm, norm=norm)
@@ -127,26 +144,30 @@ class Visualizer(object):
 
     def save_plot(self, simulation):
         """
-        Save the plot to a file specified in plot_output int he visualization configuration
+        Save the plot to a file,
+        specified in plot_output in the visualization configuration
         The file is generated using the writer from the pillow library
 
-        :param simulation: Output of the matplotlib animation.FuncAnimation function
+        :param simulation: Output of matplotlib animation.FuncAnimation
         """
         print('Saving plot at: ' + self.config.plot_output + ' ...')
-        split =  self.config.plot_output.split('/')
+        split = self.config.plot_output.split('/')
         file_name = split[-1]
-        file_path =  self.config.plot_output.replace(file_name, '')
+        file_path = self.config.plot_output.replace(file_name, '')
         if not os.path.exists(file_path):
             os.makedirs(file_path)
 
         from PIL import Image
         writergif = animation.PillowWriter(fps=5)
         simulation.save(self.config.plot_output, writer=writergif)
-        print('Saved: ' +  self.config.plot_output)
+        print('Saved: ' + self.config.plot_output)
 
     def get_node_colors(self):
         node_colors = []
         for i in range(len(self.output)):
             if i % self.config.plot_interval == 0:
-                node_colors.append([self.output[i][node, self.state_map[self.config.plot_variable]] for node in self.graph.nodes])
+                node_colors.append(
+                    [self.output[i][node, self.state_map[self.config.plot_variable]]
+                    for node in self.graph.nodes]
+                )
         return node_colors
