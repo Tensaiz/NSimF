@@ -16,6 +16,10 @@
 ## Model Runner
 - [ ] Create model runner class
 
+## Examples
+- [x] Add example runner
+- [ ] Add example param specification
+
 ## Sensitivity Analysis
 - [ ] Add sensitivity analysis runner
 - [ ] Add SA metrics
@@ -26,20 +30,22 @@
 
 ## Visualization
 - [ ] Add regular plots / trends
+- [ ] Add more layout and networkx layout support
 - [ ] Optimize animation if possible
 
 ## Testing
-- [ ] Write tests
+- [-] Write tests
 
 ## Documentation
-- [ ] Implement ReadTheDocs
+- [x] Implement ReadTheDocs
 - [ ] Document code
 
 ## DevOps
-- [ ] Add CI support
-- [ ] Add code quality checking
-- [ ] Add automatic coverage checking
+- [x] Add CI support
+- [x] Add code quality checking
+- [x] Add automatic coverage checking
+- [ ] Create contribution and pull request templates
 
 ## Package
 - [ ] Publish to PyPy
-- [ ] Add license
+- [x] Add license

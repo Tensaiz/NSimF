@@ -1,10 +1,11 @@
 import unittest
 
-from nsimfw.models.Scheme import Scheme
-from nsimfw.models.Update import Update
+from nsimf.models.Scheme import Scheme
+from nsimf.models.Update import Update
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
+
 
 class SchemeTest(unittest.TestCase):
     def test_init(self):
@@ -24,8 +25,7 @@ class SchemeTest(unittest.TestCase):
         self.assertEqual(s.upper_bound, 100)
 
     def test_sample(self):
-        s = Scheme(lambda x: x[:-1], {'x': [1,2,3,4]}, lower_bound=0, upper_bound=10, updates=[])
-        self.assertEqual(s.sample(), [1,2,3])
+        s = Scheme(lambda x: x[:-1], {'x': [1, 2, 3, 4]},
+                   lower_bound=0, upper_bound=10, updates=[])
+        self.assertEqual(s.sample(), [1, 2, 3])
 
-if __name__ == '__main__':
-    unittest.main()

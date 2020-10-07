@@ -1,11 +1,14 @@
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 
-from typing import Callable, Optional, List
-from nsimfw.models.Update import Update
+from typing import Callable, List
+from nsimf.models.Update import Update
+
 
 class Scheme(object):
-    def __init__(self, sample_function: Callable, args: dict = {}, lower_bound: int = None, upper_bound: int = None, updates: list = []):
+    def __init__(self, sample_function: Callable, args: dict = {},
+                 lower_bound: int = None, upper_bound: int = None,
+                 updates: list = []):
         self.sample_function: Callable = sample_function
         self.args: dict = args
         self.lower_bound: int = lower_bound
