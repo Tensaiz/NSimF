@@ -7,9 +7,9 @@ class Update(object):
     Update class
     """
 
-    def __init__(self, fun, args={}, condition=None, get_nodes=False):
+    def __init__(self, fun, args=None, condition=None, get_nodes=False):
         self.function = fun
-        self.arguments = args
+        self.arguments = args if args else {}
         self.condition = condition
         self.get_nodes = get_nodes
 
