@@ -12,5 +12,6 @@ class Example(object, metaclass=ABCMeta):
     def simulate(self):
         pass
 
-    def visualize(self):
+    @abstractclassmethod
+    def visualize(self, iterations):
         pass
