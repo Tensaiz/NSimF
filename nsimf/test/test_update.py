@@ -17,7 +17,3 @@ class UpdateTest(unittest.TestCase):
 
         u = Update(lambda x, y: x + y, {'y': [3, 4, 5]}, None, True)
         self.assertEqual(u.execute([1, 2]), [1, 2, 3, 4, 5])
-
-
-if __name__ == '__main__':
-    unittest.main()

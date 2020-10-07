@@ -29,6 +29,3 @@ class SchemeTest(unittest.TestCase):
                    lower_bound=0, upper_bound=10, updates=[])
         self.assertEqual(s.sample(), [1, 2, 3])
 
-
-if __name__ == '__main__':
-    unittest.main()
