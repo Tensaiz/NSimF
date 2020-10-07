@@ -2,14 +2,14 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 
-from nsimfw.models.ContinuousModel import ContinuousModel
+from nsimfw.models.Model import Model
 
 ################### MODEL CONFIGURATION ###################
 
 # Network definition
 # g = nx.random_geometric_graph(2000, 0.035)
 g = nx.random_geometric_graph(200, 0.125)
-craving_control_model = ContinuousModel(g)
+craving_control_model = Model(g)
 
 ################### MODEL SPECIFICATIONS ###################
 
@@ -126,7 +126,7 @@ visualization_config = {
         'S': [-1, 1]
     },
     'show_plot': True,
-    # 'plot_output': '../animations/c_vs_s.gif',
+    # 'plot_output': './animations/c_vs_s.gif',
     'plot_title': 'Self control vs craving simulation',
 }
 

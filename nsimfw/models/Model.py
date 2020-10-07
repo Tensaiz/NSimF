@@ -5,8 +5,11 @@ import numpy as np
 import networkx as nx
 
 from nsimfw.models.Update import Update
+from nsimfw.models.Scheme import Scheme
 from nsimfw.models.Visualizer import VisualizationConfiguration
 from nsimfw.models.Visualizer import Visualizer
+
+from typing import Dict, List
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
@@ -60,7 +63,10 @@ class Model(object, metaclass=ABCMeta):
         return self.node_states[node, self.state_map[state]]
 
     def add_update(self, fun, args={}, condition=None):
-        self.updates.append(Update(fun, args, condition))
+        self.schemes[0].add_update(Update(fun, args, condition))
+
+    def add_scheme(self, scheme):
+        self.schemes.append(scheme)
 
     def get_all_neighbors(self):
         neighbors = []
@@ -69,7 +75,7 @@ class Model(object, metaclass=ABCMeta):
         return neighbors
 
     def get_neighbors(self, node):
-        return self.graph.neighbors(node)
+        return list(self.graph.neighbors(node))
 
     def simulate(self, n, show_tqdm=True):
         simulation_output = []
@@ -83,9 +89,28 @@ class Model(object, metaclass=ABCMeta):
                 simulation_output.append(copy.deepcopy(iteration_result))
         return simulation_output
 
-    @abstractmethod
     def iteration(self):
-        pass
+        # For every scheme
+        for scheme in self.schemes:
+            if scheme.lower_bound and scheme.lower_bound > self.current_iteration:
+                continue
+            if scheme.upper_bound and scheme.upper_bound <= self.current_iteration:
+                continue
+            nodes = scheme.sample()
+            # For all the updates in the scheme
+            for update in scheme.updates:
+                if update.get_nodes:
+                     updatables = update.execute(nodes)
+                else:
+                    updatables = update.execute()
+                for state, update_output in updatables.items():
+                    if isinstance(update_output, list) or isinstance(update_output, np.ndarray):
+                        self.node_states[nodes, self.state_map[state]] = update_output
+                    elif isinstance(update_output, dict):
+                        for node, values in update_output.items():
+                            self.node_states[node, self.state_map[state]] = values
+        self.current_iteration += 1
+        return self.node_states
 
     def configure_visualization(self, options, output):
         configuration = VisualizationConfiguration(options)
@@ -98,7 +123,7 @@ class Model(object, metaclass=ABCMeta):
         self.state_map = {}
         self.state_names = []
         self.node_states = np.array([])
-        self.updates = []
+        self.schemes: List[Scheme] = [Scheme(lambda graph: graph.nodes, {'graph': self.graph}, lower_bound=0)]
         self.current_iteration = 0
 
     def reset(self):
