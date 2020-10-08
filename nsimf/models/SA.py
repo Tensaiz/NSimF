@@ -25,7 +25,7 @@ class SensitivityAnalysis(object):
         self.model = model
         self.states = list(self.model.state_map.keys())
 
-    def analyze_sensitivity(self):
+    def get_saltelli_params(self):
         problem = {
             'num_vars': len(self.config.bounds.keys()),
             'names': [var for var in self.config.bounds.keys()],
@@ -33,14 +33,18 @@ class SensitivityAnalysis(object):
                 [lower, upper] for _, (lower, upper) in self.config.bounds.items()
             ]
         }
-        param_values = saltelli.sample(problem, self.config.n, calc_second_order=self.config.second_order)
+        return saltelli.sample(problem, self.config.n, calc_second_order=self.config.second_order)
+
+    def analyze_sensitivity(self):
+
+        param_values = self.get_saltelli_params(self)
 
         print('Running Simulation...')
         outputs = []
         # TODO: Use parallel processing to run multiple simulations at once
         for i in range(len(param_values)):
             print('Running simulation ' + str(i + 1) + '/' + str(len(param_values)))
-            outputs.append(self.run_model(param_values[i], problem['names'], self.config))
+            outputs.append(self.run_model(param_values[i], problem['names']))
 
         print('Parsing outputs...')
         out = self.parse(outputs, self.config.type)
@@ -53,11 +57,11 @@ class SensitivityAnalysis(object):
 
         return analysis
 
-    def run_model(self, params, names, config):
+    def run_model(self, params, names):
         for i, name in enumerate(names):
             self.model.constants[name] = params[i]
-        self.model.set_initial_state(config.initial_state, config.params)
-        return self.model.simulate(config.iterations, show_tqdm=False)
+        self.model.set_initial_state(self.config.initial_state, self.config.params)
+        return self.model.simulate(self.config.iterations, show_tqdm=False)
 
     def parse(self, outputs, sa_type):
         mapping = {
