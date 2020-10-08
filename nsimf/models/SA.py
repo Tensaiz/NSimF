@@ -33,11 +33,11 @@ class SensitivityAnalysis(object):
                 [lower, upper] for _, (lower, upper) in self.config.bounds.items()
             ]
         }
-        return saltelli.sample(problem, self.config.n, calc_second_order=self.config.second_order)
+        return problem, saltelli.sample(problem, self.config.n, calc_second_order=self.config.second_order)
 
     def analyze_sensitivity(self):
 
-        param_values = self.get_saltelli_params(self)
+        problem, param_values = self.get_saltelli_params()
 
         print('Running Simulation...')
         outputs = []
