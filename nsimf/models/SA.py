@@ -41,7 +41,7 @@ class SensitivityAnalysis(object):
 
         print('Running Simulation...')
         outputs = []
-        # TODO: Use parallel processing to run multiple simulations at once
+        # Optimize by using parallel processing to run multiple simulations at once 
         for i in range(len(param_values)):
             print('Running simulation ' + str(i + 1) + '/' + str(len(param_values)))
             outputs.append(self.run_model(param_values[i], problem['names']))
