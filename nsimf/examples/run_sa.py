@@ -3,6 +3,7 @@ from nsimf.models.SA import SensitivityAnalysis
 from nsimf.models.SA import SAConfiguration
 
 import networkx as nx
+from networkx.algorithms import average_clustering
 import numpy as np
 
 if __name__ == "__main__":
@@ -76,10 +77,14 @@ if __name__ == "__main__":
             'bounds': {'q': (0.79, 0.81), 'b': (0.49, 0.51), 'd': (0.19, 0.21)},
             'iterations': 100,
             'initial_state': initial_state,
-            'params': {'constants': model.constants},
+            'initial_args': {'constants': model.constants},
             'n': 2,
             'second_order': True,
-            'type': 'mean'
+
+            'algorithm_input': 'network',
+            'algorithm': average_clustering,
+            'output_type': 'reduce',
+            'algorithm_args': {},
         }
     )
     sa = SensitivityAnalysis(cfg, model)

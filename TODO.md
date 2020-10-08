@@ -2,6 +2,7 @@
 
 ## General
 - [ ] Add validation to all class members and throw meaningful warnings
+- [ ] Add enums where applicable
 
 ## Model
 - [x] Create scheme class
@@ -23,11 +24,12 @@
 
 ## Sensitivity Analysis
 - [x] Add sensitivity analysis runner
-- [ ] Add SA metrics
+- [x] Add SA metrics
   - [x] Means
   - [x] Variance
   - [x] Min / Max
-  - [ ] Network metrics
+  - [x] Network metrics
+  - [x] Custom function
 - [ ] Add parallel processing
 
 ## Visualization

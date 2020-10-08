@@ -1,8 +1,8 @@
-import multiprocessing as mp
+# import multiprocessing as mp
+import copy
 import numpy as np
 from SALib.sample import saltelli
 from SALib.analyze import sobol
-import copy
 
 
 class SAConfiguration(object):
@@ -41,45 +41,70 @@ class SensitivityAnalysis(object):
 
         print('Running Simulation...')
         outputs = []
-        # Optimize by using parallel processing to run multiple simulations at once 
+        # Optimize by using parallel processing to run multiple simulations at once
         for i in range(len(param_values)):
             print('Running simulation ' + str(i + 1) + '/' + str(len(param_values)))
             outputs.append(self.run_model(param_values[i], problem['names']))
 
         print('Parsing outputs...')
-        out = self.parse(outputs, self.config.type)
-
+        out = self.parse(outputs)
+        print(out)
         print('Running sensitivity analysis...')
-        # Perform the sobol analysis seperately for every status
-        analysis = {
-            var: sobol.analyze(problem, out[var]) for var in self.states
-        }
-
-        return analysis
+        return self.analyze_output(problem, out)
 
     def run_model(self, params, names):
+        self.set_model(params, names)
+
+        if self.config.algorithm_input == 'network':
+            self.model.simulate(self.config.iterations, show_tqdm=False)
+            return copy.deepcopy(self.model.graph)
+        else:
+            return self.model.simulate(self.config.iterations, show_tqdm=False)
+
+    def set_model(self, params, names):
         for i, name in enumerate(names):
             self.model.constants[name] = params[i]
-        self.model.set_initial_state(self.config.initial_state, self.config.params)
-        return self.model.simulate(self.config.iterations, show_tqdm=False)
+        self.model.set_initial_state(self.config.initial_state, self.config.initial_args)
 
-    def parse(self, outputs, sa_type):
+    def parse(self, outputs):
         mapping = {
             'mean': np.mean,
             'variance': np.var,
             'min': np.min,
             'max': np.max
         }
-        return self.state_reduce(outputs, mapping[sa_type])
+        if self.config.algorithm in list(mapping.keys()):
+            return self.state_reduce(outputs, mapping[self.config.algorithm])
+        else:
+            return self.custom_reduce(outputs)
 
-    def state_reduce(self, outputs, fun):
+    def custom_reduce(self, outputs):
+        if self.config.output_type == 'reduce':
+            res = np.array([])
+            for output in outputs:
+                res = np.append(res, self.config.algorithm(output, **self.config.algorithm_args))
+        else:
+            return self.state_reduce(outputs, self.config.algorithm, self.config.algorithm_args)
+        return res
+
+    def state_reduce(self, outputs, fun, args=None):
+        arguments = args if args else {}
         res = self.get_state_dict()
         for output in outputs:
             for state in self.states:
-                res[state] = np.append(res[state], fun(output[-1][:, self.model.state_map[state]]))
+                res[state] = np.append(res[state], fun(output[-1][:, self.model.state_map[state]], **arguments))
         return res
 
     def get_state_dict(self):
         return {
             var: np.array([]) for var in self.states
         }
+
+    def analyze_output(self, problem, output):
+        if isinstance(output, dict):
+            # Perform the sobol analysis seperately for every status
+            return {
+                var: sobol.analyze(problem, output[var]) for var in self.states
+            }
+        elif isinstance(output, np.ndarray):
+            return sobol.analyze(problem, output)
