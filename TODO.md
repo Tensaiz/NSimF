@@ -2,7 +2,7 @@
 
 ## General
 - [ ] Add validation to all class members and throw meaningful warnings
-- [ ] Add types
+- [ ] Add enums where applicable
 
 ## Model
 - [x] Create scheme class
@@ -23,20 +23,22 @@
 - [ ] Add example param specification
 
 ## Sensitivity Analysis
-- [ ] Add sensitivity analysis runner
-- [ ] Add SA metrics
-  - [ ] Means
-  - [ ] Variance
-  - [ ] Min / Max
-  - [ ] Network metrics
+- [x] Add sensitivity analysis runner
+- [x] Add SA metrics
+  - [x] Means
+  - [x] Variance
+  - [x] Min / Max
+  - [x] Network metrics
+  - [x] Custom function
+- [ ] Add parallel processing
 
 ## Visualization
-- [ ] Add regular plots / trends
 - [ ] Add more layout and networkx layout support
+- [ ] Add regular plots / trends
 - [ ] Optimize animation if possible
 
 ## Testing
-- [-] Write tests
+- [ ] Write more tests
 
 ## Documentation
 - [x] Implement ReadTheDocs
@@ -49,5 +51,5 @@
 - [ ] Create contribution and pull request templates
 
 ## Package
-- [ ] Publish to PyPy
+- [x] Publish to PyPi
 - [x] Add license

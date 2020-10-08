@@ -46,7 +46,8 @@ class Model(object, metaclass=ABCMeta):
         for i, state in enumerate(states):
             self.state_map[state] = i
 
-    def set_initial_state(self, initial_state, arguments={}):
+    def set_initial_state(self, initial_state, args=None):
+        arguments = args if args else {}
         for state in initial_state.keys():
             val = initial_state[state]
             if hasattr(val, '__call__'):
@@ -63,8 +64,9 @@ class Model(object, metaclass=ABCMeta):
     def get_node_state(self, node, state):
         return self.node_states[node, self.state_map[state]]
 
-    def add_update(self, fun, args={}, condition=None):
-        self.schemes[0].add_update(Update(fun, args, condition))
+    def add_update(self, fun, args=None, condition=None):
+        arguments = args if args else {}
+        self.schemes[0].add_update(Update(fun, arguments, condition))
 
     def add_scheme(self, scheme):
         self.schemes.append(scheme)
