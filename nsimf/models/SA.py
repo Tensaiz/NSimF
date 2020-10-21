@@ -4,6 +4,9 @@ import numpy as np
 from SALib.sample import saltelli
 from SALib.analyze import sobol
 
+__author__ = "Mathijs Maijer"
+__email__ = "m.f.maijer@gmail.com"
+
 
 class SAConfiguration(object):
     """

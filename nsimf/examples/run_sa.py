@@ -6,6 +6,10 @@ import networkx as nx
 from networkx.algorithms import average_clustering
 import numpy as np
 
+__author__ = "Mathijs Maijer"
+__email__ = "m.f.maijer@gmail.com"
+
+
 if __name__ == "__main__":
     g = nx.random_geometric_graph(200, 0.125)
     model = Model(g)
