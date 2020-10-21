@@ -6,10 +6,10 @@
 
 ## Model
 - [x] Create scheme class
+- [x] Add custom metric function support
+- [ ] Add non-array support
 - [ ] Element wise neighbours / adjencency matrix
 - [ ] Create built-in conditions
-- [ ] Add custom metric function support
-- [ ] Add non-array support
 - [ ] Check slow neighbour check for large networks
 
 ## Update
@@ -33,7 +33,7 @@
 - [ ] Add parallel processing
 
 ## Visualization
-- [ ] Add more layout and networkx layout support
+- [x] Add more layout and networkx layout support
 - [ ] Add regular plots / trends
 - [ ] Optimize animation if possible
 

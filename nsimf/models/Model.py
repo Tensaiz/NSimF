@@ -25,6 +25,8 @@ class Model(object, metaclass=ABCMeta):
 
     def __init__(self, graph, seed=None):
         self.graph = graph
+        self.property_functions = []
+        self.properties = {}
         self.clear()
         np.random.seed(seed)
 
@@ -39,6 +41,9 @@ class Model(object, metaclass=ABCMeta):
     @property
     def nodes(self):
         return list(self.graph.nodes())
+
+    def add_property_function(self, fun):
+        self.property_functions.append(fun)
 
     def set_states(self, states):
         self.node_states = np.zeros((len(self.graph.nodes()), len(states)))
@@ -105,8 +110,19 @@ class Model(object, metaclass=ABCMeta):
                 else:
                     updatables = update.execute()
                 self.update_state(nodes, updatables)
+        self.calculate_properties()
         self.current_iteration += 1
         return self.node_states
+
+    def calculate_properties(self):
+        for prop in self.property_functions:
+            if self.current_iteration % prop.iteration_interval == 0:
+                property_outputs = self.properties.get(prop.name, [])
+                property_outputs.append(prop.execute())
+                self.properties[prop.name] = property_outputs
+
+    def get_properties(self):
+        return self.properties
 
     def update_state(self, nodes, updatables):
         for state, update_output in updatables.items():
