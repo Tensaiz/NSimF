@@ -10,7 +10,7 @@ class CravingSelfControl(Example):
 
     def __init__(self):
         # Network definition
-        g = nx.random_geometric_graph(200, 0.125)
+        g = nx.random_geometric_graph(250, 0.125)
         self.model = Model(g)
 
         constants = {
@@ -45,15 +45,31 @@ class CravingSelfControl(Example):
         def update_S(constants):
             return {'S': self.model.get_state('S') + constants['p'] * np.maximum(0, constants['S+'] - self.model.get_state('S')) - constants['h'] * self.model.get_state('C') - constants['k'] * self.model.get_state('A')}
 
+        # Naive manner
+        # def update_E(constants):
+        #     # return {'E': self.model.get_state('E') - 0.015}
+        #     e = np.zeros(len(self.model.nodes))
+        #     for i, node in enumerate(self.model.nodes):
+        #         neighbor_addiction = 0
+        #         for neighbor in self.model.get_neighbors(node):
+        #             neighbor_addiction += self.model.get_node_state(neighbor, 'A')
+        #         e[i] = neighbor_addiction / 50
+        #     return {'E': np.maximum(-1.5, self.model.get_state('E') - e)} # Custom calculation
+
+        # Less naive
+        # def update_E(constants):
+        #     e = np.zeros(len(self.model.nodes))
+        #     adj = self.model.get_adjacency()
+        #     for i in range(len(self.model.nodes)):
+        #         neighbors = adj[i].nonzero()
+        #         e[i] = np.sum(self.model.get_nodes_state(neighbors, 'A')) / 50
+        #     return {'E': np.maximum(-1.5, self.model.get_state('E') - e)} # Custom calculation
+
         def update_E(constants):
-            # return {'E': self.model.get_state('E') - 0.015}
-            e = np.zeros(len(self.model.nodes))
-            for i, node in enumerate(self.model.nodes):
-                neighbor_addiction = 0
-                for neighbor in self.model.get_neighbors(node):
-                    neighbor_addiction += self.model.get_node_state(neighbor, 'A')
-                e[i] = neighbor_addiction / 50
-            return {'E': np.maximum(-1.5, self.model.get_state('E') - e)} # Custom calculation
+            adj = self.model.get_adjacency()
+            summed = np.matmul(adj, self.model.get_nodes_states())
+            e = summed[:, self.model.get_state_index('A')] / 50
+            return {'E': np.maximum(-1.5, self.model.get_state('E') - e)}
 
         def update_V(constants):
             return {'V': np.minimum(1, np.maximum(0, self.model.get_state('C')-self.model.get_state('S')-self.model.get_state('E')))}

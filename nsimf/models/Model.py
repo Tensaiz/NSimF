@@ -2,6 +2,7 @@ from abc import ABCMeta
 import tqdm
 import copy
 import numpy as np
+import networkx as nx
 
 from nsimf.models.Update import Update
 from nsimf.models.Scheme import Scheme
@@ -25,6 +26,7 @@ class Model(object, metaclass=ABCMeta):
 
     def __init__(self, graph, seed=None):
         self.graph = graph
+        self.update_adjacency()
         self.property_functions = []
         self.properties = {}
         self.clear()
@@ -60,6 +62,9 @@ class Model(object, metaclass=ABCMeta):
             else:
                 self.node_states[:, self.state_map[state]] = val
 
+    def get_state_index(self, state):
+        return self.state_map[state]
+
     def get_state(self, state):
         return self.node_states[:, self.state_map[state]]
 
@@ -69,6 +74,12 @@ class Model(object, metaclass=ABCMeta):
     def get_node_state(self, node, state):
         return self.node_states[node, self.state_map[state]]
 
+    def get_nodes_state(self, nodes, state):
+        return self.node_states[nodes, self.state_map[state]]
+
+    def get_nodes_states(self):
+        return self.node_states
+
     def add_update(self, fun, args=None, condition=None):
         arguments = args if args else {}
         self.schemes[0].add_update(Update(fun, arguments, condition))
@@ -76,10 +87,16 @@ class Model(object, metaclass=ABCMeta):
     def add_scheme(self, scheme):
         self.schemes.append(scheme)
 
+    def get_adjacency(self):
+        return self.adjacency
+
+    def update_adjacency(self):
+        self.adjacency = nx.convert_matrix.to_numpy_array(self.graph)
+
     def get_all_neighbors(self):
         neighbors = []
         for node in list(self.graph.nodes()):
-            neighbors.append(self.graph.neighbors(node))
+            neighbors.append(self.get_neighbors(node))
         return neighbors
 
     def get_neighbors(self, node):
@@ -98,6 +115,7 @@ class Model(object, metaclass=ABCMeta):
         return simulation_output
 
     def iteration(self):
+        new_states = copy.deepcopy(self.node_states)
         # For every scheme
         for scheme in self.schemes:
             if self.inactive_scheme(scheme):
@@ -109,7 +127,8 @@ class Model(object, metaclass=ABCMeta):
                     updatables = update.execute(nodes)
                 else:
                     updatables = update.execute()
-                self.update_state(nodes, updatables)
+                new_states = self.update_state(nodes, updatables, new_states)
+        self.node_states = new_states
         self.calculate_properties()
         self.current_iteration += 1
         return self.node_states
@@ -124,14 +143,15 @@ class Model(object, metaclass=ABCMeta):
     def get_properties(self):
         return self.properties
 
-    def update_state(self, nodes, updatables):
+    def update_state(self, nodes, updatables, node_states):
         for state, update_output in updatables.items():
             if isinstance(update_output, list) or isinstance(update_output, np.ndarray):
-                self.node_states[nodes, self.state_map[state]] = update_output
+                node_states[nodes, self.state_map[state]] = update_output
             elif isinstance(update_output, dict):
                 # Add a 2d array implementation instead of for loop
                 for node, values in update_output.items():
-                    self.node_states[node, self.state_map[state]] = values
+                    node_states[node, self.state_map[state]] = values
+        return node_states
 
     def inactive_scheme(self, scheme):
         if scheme.lower_bound and scheme.lower_bound > self.current_iteration:
