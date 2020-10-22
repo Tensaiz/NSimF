@@ -8,15 +8,24 @@
 - [x] Create scheme class
 - [x] Add custom metric function support
 - [ ] Add non-array support
-- [ ] Element wise neighbours / adjencency matrix
+- [x] Element wise neighbours / adjencency matrix
 - [ ] Create built-in conditions
-- [ ] Check slow neighbour check for large networks
+- [ ] Multi process update functions per iteration
+
+## Dynamic network utility layer
+- [ ] Utility/utitilies per edge
+- [ ] Utility change
+  - [ ] How is utility updated
+  - [ ] For who is the utility updated
+- [ ] Cost function
+- [ ] Network update specification
+- [ ] Utility initialization 
+
+## UI
+- [ ] Add graphical UI for state / constant selection / distribution specification
 
 ## Update
 - [ ] Add support for conditions
-
-## Model Runner
-- [ ] Create model runner class
 
 ## Examples
 - [x] Add example runner
