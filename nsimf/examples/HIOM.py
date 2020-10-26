@@ -2,6 +2,7 @@ import networkx as nx
 import numpy as np
 
 from nsimf.models.Model import Model
+from nsimf.models.Model import ModelConfiguration
 from nsimf.models.Scheme import Scheme
 from nsimf.models.Update import Update
 from nsimf.models.Example import Example
@@ -13,7 +14,14 @@ class HIOM(Example):
         n = 400
 
         g = nx.watts_strogatz_graph(n, 2, 0.02)
-        self.model = Model(g)
+        cfg = {
+            'save_disk': False,
+            # 'path': './out.txt',
+            # 'save_interval': 100,
+            'state_memory': 0,
+            'memory_interval': 1
+        }
+        self.model = Model(g, ModelConfiguration(cfg))
 
         constants = {
             'dt': 0.01,

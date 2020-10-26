@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from nsimf.models.Model import Model
+from nsimf.models.Model import ModelConfiguration
 from nsimf.models.Example import Example
 
 
@@ -11,7 +12,14 @@ class CravingSelfControl(Example):
     def __init__(self):
         # Network definition
         g = nx.random_geometric_graph(250, 0.125)
-        self.model = Model(g)
+        cfg = {
+            'save_disk': False,
+            # 'path': './out.txt',
+            # 'save_interval': 10,
+            'state_memory': 0,
+            'memory_interval': 1
+        }
+        self.model = Model(g, ModelConfiguration(cfg))
 
         constants = {
             'q': 0.8,

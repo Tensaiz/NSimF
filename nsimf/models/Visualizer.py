@@ -1,4 +1,5 @@
 import os
+from ast import literal_eval as make_tuple
 
 import numpy as np
 import networkx as nx
@@ -65,6 +66,12 @@ class Visualizer(object):
                          for key, location in pos.items()}
 
         nx.set_node_attributes(self.graph, positions)
+
+    @staticmethod
+    def read_states_from_file(path):
+        lines = open(path, 'r').readlines()
+        dimensions = make_tuple(lines[1][1:])
+        return np.loadtxt(path).reshape(dimensions)
 
     def visualize(self, vis_type):
         visualizations = {

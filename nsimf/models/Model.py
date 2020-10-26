@@ -19,16 +19,28 @@ class ConfigurationException(Exception):
     """Configuration Exception"""
 
 
+class ModelConfiguration(object):
+    """
+    Configuration for the visualizer
+    TODO: Validate attributes
+    """
+    def __init__(self, iterable=(), **kwargs):
+        self.__dict__.update(iterable, **kwargs)
+        self.validate()
+
+    def validate(self):
+        pass
+
+
 class Model(object, metaclass=ABCMeta):
     """
     Partial Abstract Class defining a model
     """
 
-    def __init__(self, graph, seed=None):
+    def __init__(self, graph, config=None, seed=None):
         self.graph = graph
+        self.config = config
         self.update_adjacency()
-        self.property_functions = []
-        self.properties = {}
         self.clear()
         np.random.seed(seed)
 
@@ -80,6 +92,12 @@ class Model(object, metaclass=ABCMeta):
     def get_nodes_states(self):
         return self.node_states
 
+    def get_previous_nodes_states(self, n):
+        """
+        Get all the nodes' states from the n'th previous saved iteration
+        """
+        return self.simulation_output[-n - 1]
+
     def add_update(self, fun, args=None, condition=None):
         arguments = args if args else {}
         self.schemes[0].add_update(Update(fun, arguments, condition))
@@ -103,16 +121,32 @@ class Model(object, metaclass=ABCMeta):
         return list(self.graph.neighbors(node))
 
     def simulate(self, n, show_tqdm=True):
-        simulation_output = []
+        self.simulation_output = []
+        if self.config.save_disk:
+            with open(self.config.path, 'w') as f:
+                f.write('# Output array shape:\n#({0}, {1}, {2})\n'.format(int(n / self.config.save_interval), len(self.nodes), len(self.state_names)))
+                self.simulation_steps(n, show_tqdm, f)
+        else:
+            self.simulation_steps(n, show_tqdm)
+        return self.simulation_output
+
+    def simulation_steps(self, n, show_tqdm, f=None):
         if show_tqdm:
             for _ in tqdm.tqdm(range(0, n)):
-                iteration_result = self.iteration()
-                simulation_output.append(copy.deepcopy(iteration_result))
+                self.simulation_step(f)
         else:
             for _ in range(0, n):
-                iteration_result = self.iteration()
-                simulation_output.append(copy.deepcopy(iteration_result))
-        return simulation_output
+                self.simulation_step(f)
+
+    def simulation_step(self, f):
+        iteration_result = self.iteration()
+        if f and self.current_iteration % self.config.save_interval == 0:
+            np.savetxt(f, iteration_result)
+            f.write('# Iteration {0}\n'.format(self.current_iteration))
+        if self.config.state_memory != -1 and self.current_iteration % self.config.memory_interval == 0:
+            self.simulation_output.append(copy.deepcopy(iteration_result))
+        if self.config.state_memory > 0 and len(self.simulation_output) > self.config.state_memory:
+            self.simulation_output = []
 
     def iteration(self):
         new_states = copy.deepcopy(self.node_states)
@@ -171,6 +205,8 @@ class Model(object, metaclass=ABCMeta):
         self.state_map = {}
         self.state_names = []
         self.node_states = np.array([])
+        self.property_functions = []
+        self.properties = {}
         self.schemes: List[Scheme] = [Scheme(lambda graph: graph.nodes, {'graph': self.graph}, lower_bound=0)]
         self.current_iteration = 0
 
