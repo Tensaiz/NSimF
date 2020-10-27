@@ -7,19 +7,31 @@
 ## Model
 - [x] Create scheme class
 - [x] Add custom metric function support
-- [ ] Add non-array support
 - [x] Element wise neighbours / adjencency matrix
+- [x] Write states optionally to disk + config
+- [x] Implement state memory
+- [ ] Add non-array support
 - [ ] Create built-in conditions
 - [ ] Multi process update functions per iteration
 
 ## Dynamic network utility layer
-- [ ] Utility/utitilies per edge
+### Utility
+- [ ] Utility per edge
 - [ ] Utility change
-  - [ ] How is utility updated
-  - [ ] For who is the utility updated
-- [ ] Cost function
-- [ ] Network update specification
-- [ ] Utility initialization 
+  - [ ] NxN matrix
+  - [ ] Specific edges
+- [ ] Cost function definition
+- [ ] Optional utility initialization 
+- [ ] Threshold state conditions
+- [ ] Amount of neighbors condition
+
+### Network updating
+- [ ] Remove nodes
+  - [ ] List format
+- [ ] Add nodes
+  - [ ] Number specification, optional init function
+- [ ] Edge change
+  - [ ] New adjacency matrix
 
 ## UI
 - [ ] Add graphical UI for state / constant selection / distribution specification
@@ -43,8 +55,10 @@
 
 ## Visualization
 - [x] Add more layout and networkx layout support
+- [ ] Read states from disk
 - [ ] Add regular plots / trends
 - [ ] Optimize animation if possible
+- [ ] Support jupyter notebook
 
 ## Testing
 - [ ] Write more tests
