@@ -22,7 +22,7 @@ class StochasticCondition(Condition):
 
     def get_valid_nodes(self, nodes, states, adjacency_matrix, utility_matrix=None):
         f = self.get_function()
-        args = self.get_arguments(nodes, states, adjacency_matrix, utility_matrix)
+        args = self.get_arguments((nodes, states, adjacency_matrix, utility_matrix))
 
         selected_nodes = f(*args)
 
@@ -38,18 +38,18 @@ class StochasticCondition(Condition):
         }
         return condition_type_to_function_map[self.condition_type]
 
-    def get_arguments(self, nodes, states, adjacency_matrix, utility_matrix):
+    def get_arguments(self, args):
         condition_type_to_arguments_map = {
             ConditionType.STATE: [
-                nodes
+                args[0]
             ],
             ConditionType.UTILITY: [
-                nodes,
-                utility_matrix
+                args[0],
+                args[3]
             ],
             ConditionType.ADJACENCY: [
-                nodes,
-                adjacency_matrix
+                args[0],
+                args[2]
             ]
         }
         return condition_type_to_arguments_map[self.condition_type]
