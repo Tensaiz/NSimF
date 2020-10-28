@@ -20,6 +20,9 @@ class ThresholdOperator(Enum):
 class ThresholdCondition(Condition):
     def __init__(self, condition_type, threshold_operator, threshold, state=None, chained_condition=None):
         super(ThresholdCondition, self).__init__(condition_type, chained_condition)
+        self.setup(threshold_operator, threshold, state, chained_condition)
+
+    def setup(self, threshold_operator, threshold, state, chained_condition):
         self.threshold_operator = threshold_operator
         self.state = state
         self.state_index = None
