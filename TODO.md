@@ -11,7 +11,7 @@
 - [x] Write states optionally to disk + config
 - [x] Implement state memory
 - [ ] Add non-array support
-- [ ] Create built-in conditions
+- [x] Create built-in conditions
 - [ ] Multi process update functions per iteration
 
 ## Dynamic network utility layer
@@ -22,7 +22,7 @@
   - [ ] Specific edges
 - [ ] Cost function definition
 - [ ] Optional utility initialization 
-- [ ] Threshold state conditions
+- [x] Threshold state conditions
 - [ ] Amount of neighbors condition
 
 ### Network updating
@@ -37,7 +37,7 @@
 - [ ] Add graphical UI for state / constant selection / distribution specification
 
 ## Update
-- [ ] Add support for conditions
+- [x] Add support for conditions
 
 ## Examples
 - [x] Add example runner

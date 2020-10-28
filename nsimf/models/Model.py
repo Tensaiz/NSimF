@@ -98,9 +98,12 @@ class Model(object, metaclass=ABCMeta):
         """
         return self.simulation_output[-n - 1]
 
-    def add_update(self, fun, args=None, condition=None):
+    def add_update(self, fun, args=None, condition=None, get_nodes=False):
         arguments = args if args else {}
-        self.schemes[0].add_update(Update(fun, arguments, condition))
+        if condition and condition.state:
+            condition.set_state_index(self.state_map[condition.state])
+        update = Update(fun, arguments, condition, get_nodes)
+        self.schemes[0].add_update(update)
 
     def add_scheme(self, scheme):
         self.schemes.append(scheme)
@@ -154,18 +157,26 @@ class Model(object, metaclass=ABCMeta):
         for scheme in self.schemes:
             if self.inactive_scheme(scheme):
                 continue
-            nodes = scheme.sample()
+            scheme_nodes = scheme.sample()
             # For all the updates in the scheme
             for update in scheme.updates:
+                update_nodes = self.valid_update_condition_nodes(update, scheme_nodes)
+                if (len(update_nodes) == 0):
+                    continue
                 if update.get_nodes:
-                    updatables = update.execute(nodes)
+                    updatables = update.execute(update_nodes)
                 else:
                     updatables = update.execute()
-                new_states = self.update_state(nodes, updatables, new_states)
+                new_states = self.update_state(update_nodes, updatables, new_states)
         self.node_states = new_states
         self.calculate_properties()
         self.current_iteration += 1
         return self.node_states
+
+    def valid_update_condition_nodes(self, update, scheme_nodes):
+        if not update.condition:
+            return scheme_nodes
+        return update.condition.get_valid_nodes(scheme_nodes, self.node_states, self.adjacency)
 
     def calculate_properties(self):
         for prop in self.property_functions:
