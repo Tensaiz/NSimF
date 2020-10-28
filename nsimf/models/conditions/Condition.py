@@ -31,3 +31,12 @@ class Condition(metaclass=ABCMeta):
     @abstractmethod
     def get_valid_nodes(self, nodes, states, adjacency_matrix, utility_matrix=None):
         pass
+
+    @property
+    def state(self):
+        state = None
+        if self.config and self.config.state:
+            state = self.config.state
+        elif self.state:
+            state = self.state
+        return state

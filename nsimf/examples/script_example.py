@@ -8,6 +8,7 @@ from nsimf.models.Example import Example
 from nsimf.models.conditions.Condition import ConditionType
 from nsimf.models.conditions.ThresholdCondition import ThresholdCondition
 from nsimf.models.conditions.ThresholdCondition import ThresholdOperator
+from nsimf.models.conditions.ThresholdCondition import ThresholdConfiguration
 from nsimf.models.conditions.StochasticCondition import StochasticCondition
 
 if __name__ == "__main__":
@@ -70,7 +71,7 @@ if __name__ == "__main__":
         return {'A': constants['q'] * model.get_state('V') + np.minimum((np.random.poisson(model.get_state('lambda'))/7), constants['q']*(1 - model.get_state('V')))}
 
     def reduce_A(nodes):
-        return {'A': model.get_nodes_state(nodes, 'A') - 0.1}
+        return {'A': model.get_nodes_state(nodes, 'A') - 0.2}
 
     # Model definition
     model.constants = constants
@@ -82,8 +83,9 @@ if __name__ == "__main__":
     model.add_update(update_lambda, {'constants': model.constants})
     model.add_update(update_A, {'constants': model.constants})
 
-    condition_stochastic = StochasticCondition(ConditionType.STATE, 0.25)
-    condition_threshold = ThresholdCondition(ConditionType.STATE, ThresholdOperator.GE, 0.7, state='A', chained_condition=condition_stochastic) 
+    condition_stochastic = StochasticCondition(ConditionType.STATE, 0.5)
+    condition_threshold_cfg = ThresholdConfiguration(ThresholdOperator.GE, 0.7, state='A')
+    condition_threshold = ThresholdCondition(ConditionType.STATE, condition_threshold_cfg, chained_condition=condition_stochastic) 
     model.add_update(reduce_A, condition=condition_threshold, get_nodes=True)
 
     model.set_initial_state(initial_state, {'constants': model.constants})
