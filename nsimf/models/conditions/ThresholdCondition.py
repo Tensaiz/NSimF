@@ -51,25 +51,6 @@ class ThresholdCondition(Condition):
     def set_state_index(self, index):
         self.config.state_index = index
 
-    def get_valid_nodes(self, model_input):
-        _, states, adjacency_matrix, utility_matrix = model_input
-        f = self.get_function()
-        args = self.get_arguments(model_input)
-
-        selected_nodes = f(*args)
-
-        return selected_nodes \
-            if not self.chained_condition \
-            else self.chained_condition.get_valid_nodes((selected_nodes, states, adjacency_matrix, utility_matrix))
-
-    def get_function(self):
-        condition_type_to_function_map = {
-            ConditionType.STATE: self.test_states,
-            ConditionType.UTILITY: self.test_utility,
-            ConditionType.ADJACENCY: self.test_adjacency
-        }
-        return condition_type_to_function_map[self.condition_type]
-
     def get_arguments(self, model_input):
         nodes, states, adjacency_matrix, utility_matrix = model_input
         condition_type_to_arguments_map = {

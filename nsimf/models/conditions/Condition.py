@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta
 from enum import Enum
 
 __author__ = "Mathijs Maijer"
@@ -28,10 +28,6 @@ class Condition(metaclass=ABCMeta):
         if self.chained_condition and not issubclass(type(self.chained_condition), Condition):
             raise ValueError('A chained condition must be a Condition subclass')
 
-    @abstractmethod
-    def get_valid_nodes(self, nodes, states, adjacency_matrix, utility_matrix=None):
-        pass
-
     @property
     def state(self):
         state = None
@@ -40,3 +36,22 @@ class Condition(metaclass=ABCMeta):
         elif self.state:
             state = self.state
         return state
+
+    def get_valid_nodes(self, model_input):
+        _, states, adjacency_matrix, utility_matrix = model_input
+        f = self.get_function()
+        args = self.get_arguments(model_input)
+
+        selected_nodes = f(*args)
+
+        return selected_nodes \
+            if not self.chained_condition \
+            else self.chained_condition.get_valid_nodes((selected_nodes, states, adjacency_matrix, utility_matrix))
+
+    def get_function(self):
+        condition_type_to_function_map = {
+            ConditionType.STATE: self.test_states,
+            ConditionType.UTILITY: self.test_utility,
+            ConditionType.ADJACENCY: self.test_adjacency
+        }
+        return condition_type_to_function_map[self.condition_type]
