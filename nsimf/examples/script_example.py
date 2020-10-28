@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 
 from nsimf.models.Model import Model
 from nsimf.models.Model import ModelConfiguration
-from nsimf.models.Example import Example
 from nsimf.models.conditions.Condition import ConditionType
 from nsimf.models.conditions.ThresholdCondition import ThresholdCondition
 from nsimf.models.conditions.ThresholdCondition import ThresholdOperator
