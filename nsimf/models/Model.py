@@ -176,7 +176,7 @@ class Model(object, metaclass=ABCMeta):
     def valid_update_condition_nodes(self, update, scheme_nodes):
         if not update.condition:
             return scheme_nodes
-        return update.condition.get_valid_nodes(scheme_nodes, self.node_states, self.adjacency)
+        return update.condition.get_valid_nodes((scheme_nodes, self.node_states, self.adjacency, None))
 
     def calculate_properties(self):
         for prop in self.property_functions:

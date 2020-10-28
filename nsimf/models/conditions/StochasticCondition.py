@@ -20,15 +20,16 @@ class StochasticCondition(Condition):
         if not (isinstance(self.probability, int) or isinstance(self.probability, float)):
             raise ValueError('Probability should be an integer or float')
 
-    def get_valid_nodes(self, nodes, states, adjacency_matrix, utility_matrix=None):
+    def get_valid_nodes(self, model_input):
+        _, states, adjacency_matrix, utility_matrix = model_input
         f = self.get_function()
-        args = self.get_arguments((nodes, states, adjacency_matrix, utility_matrix))
+        args = self.get_arguments(model_input)
 
         selected_nodes = f(*args)
 
         return selected_nodes \
             if not self.chained_condition \
-            else self.chained_condition.get_valid_nodes(selected_nodes, states, adjacency_matrix, utility_matrix)
+            else self.chained_condition.get_valid_nodes((selected_nodes, states, adjacency_matrix, utility_matrix))
 
     def get_function(self):
         condition_type_to_function_map = {
@@ -38,18 +39,19 @@ class StochasticCondition(Condition):
         }
         return condition_type_to_function_map[self.condition_type]
 
-    def get_arguments(self, args):
+    def get_arguments(self, model_input):
+        nodes, _, adjacency_matrix, utility_matrix = model_input
         condition_type_to_arguments_map = {
             ConditionType.STATE: [
-                args[0]
+                nodes
             ],
             ConditionType.UTILITY: [
-                args[0],
-                args[3]
+                nodes,
+                utility_matrix
             ],
             ConditionType.ADJACENCY: [
-                args[0],
-                args[2]
+                nodes,
+                adjacency_matrix
             ]
         }
         return condition_type_to_arguments_map[self.condition_type]

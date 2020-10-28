@@ -19,7 +19,7 @@ class ConditionsTest(unittest.TestCase):
         t_cfg = ThresholdConfiguration(ThresholdOperator.GE, 4, 'A')
         t = ThresholdCondition(ConditionType.STATE, t_cfg)
         t.set_state_index(1)
-        nodes = t.get_valid_nodes(list(range(3)), states, None, None)
+        nodes = t.get_valid_nodes((list(range(3)), states, None, None))
 
         self.assertEqual(list(nodes), [1, 2])
 
@@ -28,7 +28,7 @@ class ConditionsTest(unittest.TestCase):
         states = np.ones((20, 3))
 
         s = StochasticCondition(ConditionType.STATE, 0.25)
-        nodes = s.get_valid_nodes(list(range(len(states))), states, None, None)
+        nodes = s.get_valid_nodes((list(range(len(states))), states, None, None))
 
         self.assertEqual(list(nodes), [1, 9, 12])
 
@@ -41,6 +41,6 @@ class ConditionsTest(unittest.TestCase):
         t.set_state_index(1)
 
         c = StochasticCondition(ConditionType.STATE, 0.25, t)
-        nodes = c.get_valid_nodes(list(range(len(states))), states, None, None)
+        nodes = c.get_valid_nodes((list(range(len(states))), states, None, None))
 
         self.assertEqual(list(nodes), [1,2,3,4,9,11,12,15,17,22])
