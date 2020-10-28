@@ -52,11 +52,24 @@ class ThresholdCondition(Condition):
         self.config.state_index = index
 
     def get_valid_nodes(self, nodes, states, adjacency_matrix, utility_matrix=None):
+        f = self.get_function()
+        args = self.get_arguments(nodes, states, adjacency_matrix, utility_matrix)
+
+        selected_nodes = f(*args)
+
+        return selected_nodes \
+            if not self.chained_condition \
+            else self.chained_condition.get_valid_nodes(selected_nodes, states, adjacency_matrix, utility_matrix)
+
+    def get_function(self):
         condition_type_to_function_map = {
             ConditionType.STATE: self.test_states,
             ConditionType.UTILITY: self.test_utility,
             ConditionType.ADJACENCY: self.test_adjacency
         }
+        return condition_type_to_function_map[self.condition_type]
+
+    def get_arguments(self, nodes, states, adjacency_matrix, utility_matrix):
         condition_type_to_arguments_map = {
             ConditionType.STATE: [
                 nodes,
@@ -71,12 +84,7 @@ class ThresholdCondition(Condition):
                 adjacency_matrix
             ]
         }
-        selected_nodes = \
-            condition_type_to_function_map[self.condition_type](*condition_type_to_arguments_map[self.condition_type])
-
-        return selected_nodes \
-            if not self.chained_condition \
-            else self.chained_condition.get_valid_nodes(selected_nodes, states, adjacency_matrix, utility_matrix)
+        return condition_type_to_arguments_map[self.condition_type]
 
     def test_states(self, nodes, states):
         if not self.config.state_index:
