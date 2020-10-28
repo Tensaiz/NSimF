@@ -1,4 +1,4 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from enum import Enum
 
 __author__ = "Mathijs Maijer"
@@ -21,6 +21,7 @@ class Condition(metaclass=ABCMeta):
         self.condition_type = condition_type
         self.chained_condition = chained_condition
         self.validate_condition()
+        self.config = None
 
     def validate_condition(self):
         if not isinstance(self.condition_type, ConditionType):
@@ -55,3 +56,19 @@ class Condition(metaclass=ABCMeta):
             ConditionType.ADJACENCY: self.test_adjacency
         }
         return condition_type_to_function_map[self.condition_type]
+
+    @abstractmethod
+    def test_adjacency(self):
+        pass
+
+    @abstractmethod
+    def test_utility(self):
+        pass
+
+    @abstractmethod
+    def test_states(self):
+        pass
+
+    @abstractmethod
+    def get_arguments(self, model_input):
+        pass
