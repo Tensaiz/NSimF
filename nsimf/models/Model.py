@@ -5,6 +5,8 @@ import numpy as np
 import networkx as nx
 
 from nsimf.models.Update import Update
+from nsimf.models.Update import UpdateType
+from nsimf.models.Update import UpdateConfiguration
 from nsimf.models.Scheme import Scheme
 from nsimf.models.Visualizer import VisualizationConfiguration
 from nsimf.models.Visualizer import Visualizer
@@ -25,8 +27,17 @@ class ModelConfiguration(object):
     TODO: Validate attributes
     """
     def __init__(self, iterable=(), **kwargs):
+        self.init()
         self.__dict__.update(iterable, **kwargs)
         self.validate()
+
+    def init(self):
+        self.utility = False
+        self.save_disk = False
+        self.state_memory = 0
+        self.save_interval = 0
+        self.memory_interval = 1
+        self.path = './output/'
 
     def validate(self):
         pass
@@ -39,9 +50,9 @@ class Model(object, metaclass=ABCMeta):
 
     def __init__(self, graph, config=None, seed=None):
         self.graph = graph
-        self.config = config
-        self.update_adjacency()
+        self.config = config if config else ModelConfiguration()
         self.clear()
+        self.init()
         np.random.seed(seed)
 
     @property
@@ -55,6 +66,11 @@ class Model(object, metaclass=ABCMeta):
     @property
     def nodes(self):
         return list(self.graph.nodes())
+
+    def init(self):
+        self.update_adjacency()
+        if self.config.utility:
+            self.initialize_utility()
 
     def add_property_function(self, fun):
         self.property_functions.append(fun)
@@ -73,6 +89,20 @@ class Model(object, metaclass=ABCMeta):
                 self.node_states[:, self.state_map[state]] = val(**arguments)
             else:
                 self.node_states[:, self.state_map[state]] = val
+
+    def initialize_utility(self):
+        n_nodes = len(self.graph.nodes())
+        self.edge_utility = np.zeros((n_nodes, n_nodes))
+
+    def get_utility(self):
+        return self.edge_utility
+
+    def get_nodes_utility(self, nodes):
+        return self.edge_utility[nodes]
+
+    def set_initial_utility(self, init_function, params=None):
+        params = params if params else {}
+        self.edge_utility = init_function(*params)
 
     def get_state_index(self, state):
         return self.state_map[state]
@@ -98,18 +128,44 @@ class Model(object, metaclass=ABCMeta):
         """
         return self.simulation_output[-n - 1]
 
-    def add_update(self, fun, args=None, condition=None, get_nodes=False):
+    def add_update(self, fun, args=None, condition=None, get_nodes=False, update_type=None):
         arguments = args if args else {}
         if condition and condition.state:
             condition.set_state_index(self.state_map[condition.state])
-        update = Update(fun, arguments, condition, get_nodes)
+        update_type = update_type if update_type else UpdateType.STATE
+        update = self.create_update((fun, arguments, condition, get_nodes, update_type))
         self.schemes[0].add_update(update)
+
+    def add_state_update(self, fun, args=None, condition=None, get_nodes=False):
+        self.add_update(fun, args, condition, get_nodes, UpdateType.STATE)
+
+    def add_utility_update(self, fun, args=None, condition=None, get_nodes=False):
+        if self.config.utility == False:
+            raise ValueError('Utility has not been set to true in config')
+        self.add_update(fun, args, condition, get_nodes, UpdateType.UTILITY)
+
+    def add_network_update(self, fun, args=None, condition=None, get_nodes=False):
+        self.add_update(fun, args, condition, get_nodes, UpdateType.NETWORK)
+
+    def create_update(self, update_content):
+        fun, arguments, condition, get_nodes, update_type = update_content
+        cfg_options = {
+            'arguments': arguments,
+            'condition': condition,
+            'get_nodes': get_nodes,
+            'update_type': update_type
+        }
+        update_cfg = UpdateConfiguration(cfg_options)
+        return Update(fun, update_cfg)
 
     def add_scheme(self, scheme):
         self.schemes.append(scheme)
 
     def get_adjacency(self):
         return self.adjacency
+
+    def get_nodes_adjacency(self, nodes):
+        return self.adjacency[nodes]
 
     def update_adjacency(self):
         self.adjacency = nx.convert_matrix.to_numpy_array(self.graph)
@@ -153,6 +209,9 @@ class Model(object, metaclass=ABCMeta):
 
     def iteration(self):
         new_states = copy.deepcopy(self.node_states)
+        new_utility = copy.deepcopy(self.edge_utility)
+        new_adjacency = copy.deepcopy(self.adjacency)
+        new_graph = copy.deepcopy(self.graph)
         # For every scheme
         for scheme in self.schemes:
             if self.inactive_scheme(scheme):
@@ -167,11 +226,23 @@ class Model(object, metaclass=ABCMeta):
                     updatables = update.execute(update_nodes)
                 else:
                     updatables = update.execute()
-                new_states = self.update_state(update_nodes, updatables, new_states)
+                self.assign_update((update, update_nodes, updatables, new_states, new_utility, new_adjacency, new_graph))
         self.node_states = new_states
+        self.edge_utility = new_utility
+        self.adjacency = new_adjacency
+        self.graph = new_graph
         self.calculate_properties()
         self.current_iteration += 1
         return self.node_states
+
+    def assign_update(self, update_info):
+        update, update_nodes, updatables, new_states, new_utility, new_adjacency, new_graph = update_info
+        if update.update_type == UpdateType.STATE:
+            new_states = self.update_state(update_nodes, updatables, new_states)
+        elif update.update_type == UpdateType.UTILITY:
+            new_utility[update_nodes] = updatables
+        elif update.update_type == UpdateType.NETWORK:
+            self.update_network(update_nodes, updatables, (new_states, new_utility, new_adjacency, new_graph))
 
     def valid_update_condition_nodes(self, update, scheme_nodes):
         if not update.condition:
@@ -205,6 +276,47 @@ class Model(object, metaclass=ABCMeta):
             return True
         return False
 
+    def update_network(self, update_nodes, updatables, model_new_values):
+        for network_update_type, change in updatables.items():
+            self.assign_network_operation(network_update_type, (change, update_nodes, model_new_values))
+
+    def assign_network_operation(self, network_update_type, network_update_info):
+        change, update_nodes, model_new_values = network_update_info
+        network_update_type_to_function = {
+            'remove': self.network_nodes_remove,
+            'add': self.network_nodes_add,
+            'edge_change': self.network_edges_change
+        }
+        network_update_type_to_function[network_update_type](change, update_nodes, model_new_values)
+
+    def network_nodes_remove(self, removable_nodes, update_nodes, model_new_values):
+        new_states, new_utility, new_adjacency, new_graph = model_new_values
+        new_states[:] = np.delete(new_states, removable_nodes)
+        new_utility[:] = np.delete(new_utility, removable_nodes)
+        new_graph.remove_nodes_from(removable_nodes)
+        new_adjacency[:] = nx.convert_matrix.to_numpy_array(new_graph)
+
+    def network_nodes_add(self, new_nodes_config, update_nodes, model_new_values):
+        new_states, new_utility, new_adjacency, new_graph = model_new_values
+        n_new_nodes = new_nodes_config['n']
+        edges = new_nodes_config['edges']
+        initial_states = new_nodes_config['initial_states']
+        adjacency = new_nodes_config['adjacency']
+        utility = new_nodes_config['utility']
+
+        new_graph.add_nodes_from(range(n_new_nodes))
+        # new_graph.add_edges_from(edges)
+
+        # Continue here
+
+
+    def network_edges_change(self, change, update_nodes, model_new_values):
+        _, _, new_adjacency, new_graph = model_new_values
+        if new_adjacency.shape == change.shape:
+            new_adjacency[:] = change
+            new_graph[:] = nx.from_numpy_matrix(new_adjacency)
+            return
+
     def configure_visualization(self, options, output):
         configuration = VisualizationConfiguration(options)
         self.visualizer = Visualizer(configuration, self.graph, self.state_map, output)
@@ -220,6 +332,7 @@ class Model(object, metaclass=ABCMeta):
         self.properties = {}
         self.schemes: List[Scheme] = [Scheme(lambda graph: graph.nodes, {'graph': self.graph}, lower_bound=0)]
         self.current_iteration = 0
+        self.edge_utility = np.array([])
 
     def reset(self):
         self.node_states = np.zeros((len(self.graph.nodes()), len(self.state_names)))

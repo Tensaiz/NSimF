@@ -5,6 +5,7 @@ from nsimf.models.Model import Model
 from nsimf.models.Model import ModelConfiguration
 from nsimf.models.Scheme import Scheme
 from nsimf.models.Update import Update
+from nsimf.models.Update import UpdateConfiguration
 from nsimf.models.Example import Example
 
 
@@ -89,7 +90,11 @@ class HIOM(Example):
         self.model.constants = constants
         self.model.set_states(['I', 'A', 'O'])
 
-        up_I_A = Update(update_I_A, {'constants': self.model.constants}, get_nodes=True)
+        update_cfg = UpdateConfiguration({
+            'arguments': {'constants': self.model.constants},
+            'get_nodes': True
+        })
+        up_I_A = Update(update_I_A, update_cfg)
         s_I = Update(shrink_I)
         s_A = Update(shrink_A)
 

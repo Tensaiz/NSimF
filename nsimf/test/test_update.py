@@ -1,6 +1,8 @@
 import unittest
 
 from nsimf.models.Update import Update
+from nsimf.models.Update import UpdateType
+from nsimf.models.Update import UpdateConfiguration
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
@@ -8,12 +10,33 @@ __email__ = "m.f.maijer@gmail.com"
 
 class UpdateTest(unittest.TestCase):
     def test_init(self):
-        u = Update(lambda x: x, {}, None, False)
-        self.assertEqual(len(u.__dict__.keys()), 4)
+        cfg_options = {
+            'arguments': None,
+            'condition': None,
+            'get_nodes': False,
+            'update_type': UpdateType.STATE
+        }
+        update_cfg = UpdateConfiguration(cfg_options)
+        u = Update(lambda x: x, update_cfg)
+        self.assertEqual(len(u.__dict__.keys()), 6)
 
     def test_execute(self):
-        u = Update(lambda x: x, {'x': [1, 2, 3]}, None, False)
+        cfg_options = {
+            'arguments': {'x': [1, 2, 3]},
+            'condition': None,
+            'get_nodes': False,
+            'update_type': UpdateType.STATE
+        }
+        update_cfg = UpdateConfiguration(cfg_options)
+        u = Update(lambda x: x, update_cfg)
         self.assertEqual(u.execute(), [1, 2, 3])
 
-        u = Update(lambda x, y: x + y, {'y': [3, 4, 5]}, None, True)
+        cfg_options = {
+            'arguments': {'y': [3, 4, 5]},
+            'condition': None,
+            'get_nodes': True,
+            'update_type': UpdateType.STATE
+        }
+        update_cfg = UpdateConfiguration(cfg_options)
+        u = Update(lambda x, y: x + y, update_cfg)
         self.assertEqual(u.execute([1, 2]), [1, 2, 3, 4, 5])

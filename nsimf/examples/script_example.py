@@ -14,6 +14,7 @@ if __name__ == "__main__":
     # Network definition
     g = nx.random_geometric_graph(250, 0.125)
     cfg = {
+        'utility': True,
         'save_disk': False,
         # 'path': './out.txt',
         # 'save_interval': 10,
@@ -47,6 +48,9 @@ if __name__ == "__main__":
         'A': initial_a
     }
 
+    def inital_utility():
+        return np.ones((250, 250))
+
     def update_C(constants):
         c = model.get_state('C') + constants['b'] * model.get_state('A') * np.minimum(1, 1-model.get_state('C')) - constants['d'] * model.get_state('C')
         return {'C': c}
@@ -72,6 +76,9 @@ if __name__ == "__main__":
     def reduce_A(nodes):
         return {'A': model.get_nodes_state(nodes, 'A') - 0.2}
 
+    def update_utility():
+        return model.get_utility()
+
     # Model definition
     model.constants = constants
     model.set_states(['C', 'S', 'E', 'V', 'lambda', 'A'])
@@ -87,7 +94,10 @@ if __name__ == "__main__":
     condition_threshold = ThresholdCondition(ConditionType.STATE, condition_threshold_cfg, chained_condition=condition_stochastic) 
     model.add_update(reduce_A, condition=condition_threshold, get_nodes=True)
 
+    model.add_utility_update(update_utility)
+
     model.set_initial_state(initial_state, {'constants': model.constants})
+    model.set_initial_utility(inital_utility)
 
     iterations = model.simulate(100)
 

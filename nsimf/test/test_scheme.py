@@ -2,6 +2,8 @@ import unittest
 
 from nsimf.models.Scheme import Scheme
 from nsimf.models.Update import Update
+from nsimf.models.Update import UpdateConfiguration
+from nsimf.models.Update import UpdateType
 
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
@@ -14,7 +16,13 @@ class SchemeTest(unittest.TestCase):
 
     def test_add_update(self):
         s = Scheme(lambda x: x, {}, lower_bound=0, upper_bound=10, updates=[])
-        u = Update(lambda x: x)
+        cfg_options = {
+            'arguments': None,
+            'condition': None,
+            'get_nodes': False,
+            'update_type': UpdateType.STATE
+        }
+        u = Update(lambda x: x, UpdateConfiguration(cfg_options))
         s.add_update(u)
         self.assertEqual(len(s.updates), 1)
 

@@ -10,34 +10,43 @@
 - [x] Element wise neighbours / adjencency matrix
 - [x] Write states optionally to disk + config
 - [x] Implement state memory
-- [ ] Add non-array support
 - [x] Create built-in conditions
+- [ ] Implement more memory
+  - [ ] Utility memory
+  - [ ] Adjacency memory
+  - [ ] Graph memory
+- [ ] Add non-array support
 - [ ] Multi process update functions per iteration
 
 ## Dynamic network utility layer
 ### Utility
-- [ ] Utility per edge
-- [ ] Utility change
-  - [ ] NxN matrix
+- [x] Utility per edge
+- [x] Utility change
+  - [x] NxN matrix
   - [ ] Specific edges
-- [ ] Cost function definition
-- [ ] Optional utility initialization 
+<!-- - [ ] Cost function definition -->
+- [x] Optional utility initialization 
 - [x] Threshold state conditions
 - [ ] Amount of neighbors condition
 
 ### Network updating
-- [ ] Remove nodes
-  - [ ] List format
+- [x] Remove nodes
+  - [x] List format
 - [ ] Add nodes
-  - [ ] Number specification, optional init function
-- [ ] Edge change
-  - [ ] New adjacency matrix
+  - [ ] Number specification
+  - [ ] Optional state init
+  - [ ] Optional utility init
+  - [ ] Optional 
+  - [ ] Optional edges 
+- [x] Edge change
+  - [x] New adjacency matrix
 
 ## UI
 - [ ] Add graphical UI for state / constant selection / distribution specification
 
 ## Update
 - [x] Add support for conditions
+- [ ] Set all chained condition state indices
 
 ## Examples
 - [x] Add example runner
@@ -55,7 +64,8 @@
 
 ## Visualization
 - [x] Add more layout and networkx layout support
-- [ ] Read states from disk
+- [x] Read states from disk
+- [ ] Smart reconfiguration visualization
 - [ ] Add regular plots / trends
 - [ ] Optimize animation if possible
 - [ ] Support jupyter notebook
