@@ -18,7 +18,7 @@ class UpdateTest(unittest.TestCase):
         }
         update_cfg = UpdateConfiguration(cfg_options)
         u = Update(lambda x: x, update_cfg)
-        self.assertEqual(len(u.__dict__.keys()), 6)
+        self.assertTrue(isinstance(u, Update))
 
     def test_execute(self):
         cfg_options = {

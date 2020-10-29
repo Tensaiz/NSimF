@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     condition_stochastic = StochasticCondition(ConditionType.STATE, 0.5)
     condition_threshold_cfg = ThresholdConfiguration(ThresholdOperator.GE, 0.7, state='A')
-    condition_threshold = ThresholdCondition(ConditionType.STATE, condition_threshold_cfg, chained_condition=condition_stochastic) 
+    condition_threshold = ThresholdCondition(ConditionType.STATE, condition_threshold_cfg, chained_condition=condition_stochastic)
     model.add_update(reduce_A, condition=condition_threshold, get_nodes=True)
 
     model.add_utility_update(update_utility)

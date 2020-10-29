@@ -12,7 +12,7 @@ __email__ = "m.f.maijer@gmail.com"
 class SchemeTest(unittest.TestCase):
     def test_init(self):
         s = Scheme(lambda x: x, {}, lower_bound=0, upper_bound=10, updates=[])
-        self.assertEqual(len(s.__dict__.keys()), 5)
+        self.assertTrue(isinstance(s, Scheme))
 
     def test_add_update(self):
         s = Scheme(lambda x: x, {}, lower_bound=0, upper_bound=10, updates=[])

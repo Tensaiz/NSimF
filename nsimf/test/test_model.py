@@ -13,7 +13,7 @@ class ModelTest(unittest.TestCase):
     def test_model_init(self):
         g = nx.random_geometric_graph(10, 0.1)
         m = Model(g)
-        self.assertEqual(len(m.__dict__.keys()), 11)
+        self.assertTrue(isinstance(m, Model))
 
     def test_model_constants(self):
         g = nx.random_geometric_graph(10, 0.1)

@@ -34,7 +34,7 @@ class ConditionsTest(unittest.TestCase):
 
     def test_chained_conditions(self):
         np.random.seed(1337)
-        states = np.random.random((100, 3))
+        states = np.random.random_sample((100, 3))
 
         t_cfg = ThresholdConfiguration(ThresholdOperator.GE, 0.5, 'A')
         t = ThresholdCondition(ConditionType.STATE, t_cfg)
