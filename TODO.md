@@ -36,7 +36,6 @@
   - [ ] Number specification
   - [ ] Optional state init
   - [ ] Optional utility init
-  - [ ] Optional 
   - [ ] Optional edges 
 - [x] Edge change
   - [x] New adjacency matrix

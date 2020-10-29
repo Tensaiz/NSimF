@@ -254,21 +254,6 @@ class Model(object, metaclass=ABCMeta):
         elif update.update_type == UpdateType.NETWORK:
             self.update_network(update_nodes, updatables)
 
-    def valid_update_condition_nodes(self, update, scheme_nodes):
-        if not update.condition:
-            return scheme_nodes
-        return update.condition.get_valid_nodes((scheme_nodes, self.node_states, self.adjacency, None))
-
-    def calculate_properties(self):
-        for prop in self.property_functions:
-            if self.current_iteration % prop.iteration_interval == 0:
-                property_outputs = self.properties.get(prop.name, [])
-                property_outputs.append(prop.execute())
-                self.properties[prop.name] = property_outputs
-
-    def get_properties(self):
-        return self.properties
-
     def update_state(self, nodes, updatables):
         for state, update_output in updatables.items():
             if isinstance(update_output, list) or isinstance(update_output, np.ndarray):
@@ -277,13 +262,6 @@ class Model(object, metaclass=ABCMeta):
                 # Add a 2d array implementation instead of for loop
                 for node, values in update_output.items():
                     self.new_node_states[node, self.state_map[state]] = values
-
-    def inactive_scheme(self, scheme):
-        if scheme.lower_bound and scheme.lower_bound > self.current_iteration:
-            return True
-        elif scheme.upper_bound and scheme.upper_bound <= self.current_iteration:
-            return True
-        return False
 
     def update_network(self, update_nodes, updatables):
         for network_update_type, change in updatables.items():
@@ -321,6 +299,28 @@ class Model(object, metaclass=ABCMeta):
             self.new_adjacency = change[:]
             self.new_graph = nx.from_numpy_matrix(self.new_adjacency)
             return
+
+    def inactive_scheme(self, scheme):
+        if scheme.lower_bound and scheme.lower_bound > self.current_iteration:
+            return True
+        elif scheme.upper_bound and scheme.upper_bound <= self.current_iteration:
+            return True
+        return False
+
+    def calculate_properties(self):
+        for prop in self.property_functions:
+            if self.current_iteration % prop.iteration_interval == 0:
+                property_outputs = self.properties.get(prop.name, [])
+                property_outputs.append(prop.execute())
+                self.properties[prop.name] = property_outputs
+
+    def get_properties(self):
+        return self.properties
+
+    def valid_update_condition_nodes(self, update, scheme_nodes):
+        if not update.condition:
+            return scheme_nodes
+        return update.condition.get_valid_nodes((scheme_nodes, self.node_states, self.adjacency, None))
 
     def configure_visualization(self, options, output):
         configuration = VisualizationConfiguration(options)
