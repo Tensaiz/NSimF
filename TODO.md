@@ -27,18 +27,23 @@
 <!-- - [ ] Cost function definition -->
 - [x] Optional utility initialization 
 - [x] Threshold state conditions
+- [ ] Threshold utility
+- [ ] Threshold adjacency
 - [ ] Amount of neighbors condition
 
 ### Network updating
+<!-- - [ ] Order update dictionary -->
 - [x] Remove nodes
   - [x] List format
-- [ ] Add nodes
-  - [ ] Number specification
-  - [ ] Optional state init
-  - [ ] Optional utility init
-  - [ ] Optional edges 
-- [x] Edge change
-  - [x] New adjacency matrix
+- [x] Edge changes
+  - [x] Overwrite
+  - [x] Add
+  - [x] Remove
+  - [x] Optional utility init
+- [x] Add nodes
+  - [x] Optional state init
+  - [x] Optional edges 
+    - [x] Optional utility init
 
 ## UI
 - [ ] Add graphical UI for state / constant selection / distribution specification
