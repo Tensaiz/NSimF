@@ -29,14 +29,13 @@ class Condition(metaclass=ABCMeta):
         if self.chained_condition and not issubclass(type(self.chained_condition), Condition):
             raise ValueError('A chained condition must be a Condition subclass')
 
-    @property
-    def state(self):
-        state = None
+    def get_state(self):
         if self.config and self.config.state:
-            state = self.config.state
-        elif self.state:
-            state = self.state
-        return state
+            return self.config.state
+        elif 'state' in self.__dict__:
+            return self.state
+        else:
+            return None
 
     def get_valid_nodes(self, model_input):
         _, states, adjacency_matrix, utility_matrix = model_input

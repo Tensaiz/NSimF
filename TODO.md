@@ -11,7 +11,9 @@
 - [x] Write states optionally to disk + config
 - [x] Implement state memory
 - [x] Create built-in conditions
-- [ ] Implement more memory
+- [ ] Output config class
+- [ ] Memory config class
+  - [ ] State memory
   - [ ] Utility memory
   - [ ] Adjacency memory
   - [ ] Graph memory
@@ -23,16 +25,14 @@
 - [x] Utility per edge
 - [x] Utility change
   - [x] NxN matrix
-  - [ ] Specific edges
-<!-- - [ ] Cost function definition -->
+  - [x] Specific edges
 - [x] Optional utility initialization 
 - [x] Threshold state conditions
-- [ ] Threshold utility
-- [ ] Threshold adjacency
-- [ ] Amount of neighbors condition
+- [x] Threshold utility
+- [x] Threshold adjacency (amount of neighbors)
 
 ### Network updating
-<!-- - [ ] Order update dictionary -->
+<!-- - [ ] Order update dictionary -> First utility then network? -->
 - [x] Remove nodes
   - [x] List format
 - [x] Edge changes
@@ -44,13 +44,14 @@
   - [x] Optional state init
   - [x] Optional edges 
     - [x] Optional utility init
+- [] Optional utility callable initialization
 
 ## UI
 - [ ] Add graphical UI for state / constant selection / distribution specification
 
 ## Update
 - [x] Add support for conditions
-- [ ] Set all chained condition state indices
+- [x] Set all chained condition state indices
 
 ## Examples
 - [x] Add example runner

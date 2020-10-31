@@ -75,7 +75,17 @@ class ThresholdCondition(Condition):
         return np.where(self.config.threshold_operator.value(states[nodes, self.config.state_index], self.config.threshold))[0]
 
     def test_utility(self, nodes, utility_matrix):
-        pass
+        """
+        Find the indices of nodes that have at least one utility edge value for which the threshold operator holds
+
+        Returns indices of the nodes for which `threshold operator(utility_edge, condition.threshold)` is true
+        """
+        return np.unique(np.where(self.config.threshold_operator.value(utility_matrix, self.config.threshold))[0])
 
     def test_adjacency(self, nodes, adjacency_matrix):
-        pass
+        """
+        Calculates the amount of neighbors for each node and applies the threshold operator on each node's neighbor amount
+
+        Returns indices of the nodes for which: `threshold operator(n_neighbors, condition.threshold)` is true
+        """
+        return np.where(self.config.threshold_operator.value(np.sum(adjacency_matrix, 1), self.config.threshold))[0]

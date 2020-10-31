@@ -21,28 +21,32 @@ class StochasticCondition(Condition):
             raise ValueError('Probability should be an integer or float')
 
     def get_arguments(self, model_input):
-        nodes, _, adjacency_matrix, utility_matrix = model_input
+        nodes, _, _, _ = model_input
         condition_type_to_arguments_map = {
             ConditionType.STATE: [
                 nodes
             ],
             ConditionType.UTILITY: [
-                nodes,
-                utility_matrix
+                nodes
             ],
             ConditionType.ADJACENCY: [
-                nodes,
-                adjacency_matrix
+                nodes
             ]
         }
         return condition_type_to_arguments_map[self.condition_type]
 
-    def test_states(self, nodes):
-        sampled_probabilities = np.random.random(len(nodes))
+    def get_function(self):
+        return self.random_sample
+
+    def random_sample(self, nodes):
+        sampled_probabilities = np.random.random_sample(len(nodes))
         return np.where(sampled_probabilities < self.probability)[0]
 
-    def test_utility(self, nodes, utility_matrix):
+    def test_states(self, nodes):
         pass
 
-    def test_adjacency(self, nodes, adjacency_matrix):
+    def test_utility(self, nodes):
+        pass
+
+    def test_adjacency(self, nodes):
         pass
