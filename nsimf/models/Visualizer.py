@@ -37,38 +37,63 @@ class Visualizer(object):
         self.config = config
         self.graph = graph
         self.state_map = state_map
-        self.output = model_output
-        self.check_layout()
+        self.states = model_output['states']
+        self.utilities = model_output['utility']
+        self.adjacencies = model_output['adjacency']
+        self.create_locations()
+        self.max_iteration = self.get_total_iterations()
 
-    def check_layout(self):
-        if 'pos' in self.graph.nodes[0].keys():
-            return
+    def create_locations(self):
+        print('Creating locations for adjacency graphs...')
+        if len(self.adjacencies.values()) > 0:
+            self.locations = {}
+            for iteration, adjacency_matrix in self.adjacencies.items():
+                last_index = self.get_last_index(self.adjacencies, iteration - 1)
+                prev_adj = self.adjacencies[last_index]
+                if (prev_adj == adjacency_matrix).all() and last_index in self.locations:
+                    self.locations[iteration] = self.locations[last_index]
+                else:
+                    # If the current adjacency matrix is not the same as the last one
+                    locations = self.create_adjacency_node_locations(adjacency_matrix)
+                    self.locations[iteration] = locations
+        else:
+            self.locations = None
+            self.create_graph_node_locations()
+
+    def create_adjacency_node_locations(self, adjacency_matrix):
+        # Adjacency matrix to graph
+        graph = nx.convert_matrix.from_numpy_array(adjacency_matrix)
+        return self.create_layout(graph)
+
+    def create_layout(self, graph):
         if 'layout' in self.config.__dict__:
             if self.config.layout == 'fr':
                 import pyintergraph
-                Graph = pyintergraph.InterGraph.from_networkx(self.graph)
+                Graph = pyintergraph.InterGraph.from_networkx(graph)
                 G = Graph.to_igraph()
-                layout = G.layout_fruchterman_reingold(niter=500)
-                positions = \
-                    {node: {'pos': location}
-                        for node, location in enumerate(layout)}
+                positions = G.layout_fruchterman_reingold(niter=500)
             else:
                 if 'layout_params' in self.config.__dict__:
-                    pos = self.config.layout(self.graph,
+                    positions = self.config.layout(graph,
                                              **self.config.layout_params)
                 else:
-                    pos = self.config.layout(self.graph)
-                positions = {key: {'pos': location}
-                             for key, location in pos.items()}
+                    positions = self.config.layout(graph)
         else:
-            pos = nx.drawing.spring_layout(self.graph)
-            positions = {key: {'pos': location}
-                         for key, location in pos.items()}
+            positions = nx.drawing.spring_layout(graph)
+        return positions
 
-        nx.set_node_attributes(self.graph, positions)
+    def create_graph_node_locations(self):
+        if 'pos' in self.graph.nodes[0].keys():
+            self.static_locations = nx.get_node_attributes(self.graph, 'pos')
+        self.static_locations = self.create_layout(self.graph)
 
     @staticmethod
     def read_states_from_file(path):
+        """
+        Reads in saved states to disk and returns a numpy array
+
+        Note: Has to be reworked
+        """
         lines = open(path, 'r').readlines()
         dimensions = make_tuple(lines[1][1:])
         return np.loadtxt(path).reshape(dimensions)
@@ -99,7 +124,7 @@ class Visualizer(object):
             ax.get_yaxis().set_ticks([])
             axis.append(ax)
 
-        n = int(len(self.output)/self.config.plot_interval)
+        n = int(self.max_iteration / self.config.plot_interval)
 
         cm = plt.cm.get_cmap(self.config.color_scale)
         vmin = self.config.variable_limits[self.config.plot_variable][0]
@@ -113,11 +138,12 @@ class Visualizer(object):
 
         def animate(curr):
             index = curr * self.config.plot_interval
+            state_index = self.get_last_index(self.states, index)
 
             network.clear()
             for i, ax in enumerate(axis):
                 ax.clear()
-                data = self.output[index][:, i]
+                data = self.states[state_index][:, i]
                 bc = ax.hist(data,
                              range=self.config.variable_limits[state_names[i]],
                              density=1, bins=25, edgecolor='black')[2]
@@ -125,7 +151,12 @@ class Visualizer(object):
                     e.set_facecolor(colors[j])
                 ax.set_title(state_names[i])
 
-            pos = nx.get_node_attributes(self.graph, 'pos')
+            if self.locations:
+                locations_index = self.get_last_index(self.adjacencies, index)
+                self.graph = nx.convert_matrix.from_numpy_array(self.adjacencies[locations_index])
+                pos = self.locations[locations_index]
+            else:
+                pos = self.static_locations
             nx.draw_networkx_edges(self.graph, pos,
                                    alpha=0.2, ax=network)
             nc = nx.draw_networkx_nodes(self.graph, pos,
@@ -139,7 +170,7 @@ class Visualizer(object):
             network.get_yaxis().set_ticks([])
             network.set_title('Iteration: ' + str(index))
 
-        ani = animation.FuncAnimation(fig, animate, n, interval=200, 
+        ani = animation.FuncAnimation(fig, animate, n, interval=200,
                                       repeat=True, blit=False)
 
         norm = mpl.colors.Normalize(vmin=vmin, vmax=vmax)
@@ -175,11 +206,33 @@ class Visualizer(object):
         print('Saved: ' + self.config.plot_output)
 
     def get_node_colors(self):
+        iterations = list(self.states.keys())
         node_colors = []
-        for i in range(len(self.output)):
+        for i in range(len(self.states.keys())):
             if i % self.config.plot_interval == 0:
                 node_colors.append(
-                    [self.output[i][node, self.state_map[self.config.plot_variable]]
+                    [self.states[iterations[i]][node, self.state_map[self.config.plot_variable]]
                     for node in self.graph.nodes]
                 )
         return node_colors
+
+    def get_last_index(self, variable, index):
+        iterations = list(variable.keys())
+        if index < iterations[0]:
+            return iterations[0]
+        while index not in iterations:
+            index -= 1
+        return index
+
+    def get_total_iterations(self):
+        visualizables = [
+            self.states,
+            self.adjacencies,
+            self.utilities
+        ]
+        total = 0
+        for visualizables in visualizables:
+            max_iteration = list(self.states.keys())[-1]
+            if max_iteration > total:
+                total = max_iteration
+        return total

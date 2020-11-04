@@ -3,6 +3,7 @@
 ## General
 - [ ] Add validation to all class members and throw meaningful warnings
 - [ ] Add enums where applicable
+- [ ] Rename/relocate project
 
 ## Model
 - [x] Create scheme class
@@ -11,12 +12,10 @@
 - [x] Write states optionally to disk + config
 - [x] Implement state memory
 - [x] Create built-in conditions
-- [ ] Output config class
-- [ ] Memory config class
-  - [ ] State memory
-  - [ ] Utility memory
-  - [ ] Adjacency memory
-  - [ ] Graph memory
+- [x] Memory/output config class
+  - [x] State memory
+  - [x] Utility memory
+  - [x] Adjacency memory
 - [ ] Add non-array support
 - [ ] Multi process update functions per iteration
 
@@ -69,8 +68,11 @@
 
 ## Visualization
 - [x] Add more layout and networkx layout support
+- [x] Deal with different dimensions when writing
+- [x] Reconfiguration visualization
 - [x] Read states from disk
-- [ ] Smart reconfiguration visualization
+  - [ ] Rework for dictionary format
+- [ ] Visualize utility
 - [ ] Add regular plots / trends
 - [ ] Optimize animation if possible
 - [ ] Support jupyter notebook

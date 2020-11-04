@@ -3,6 +3,8 @@ import numpy as np
 
 from nsimf.models.Model import Model
 from nsimf.models.Model import ModelConfiguration
+from nsimf.models.Memory import MemoryConfiguration
+from nsimf.models.Memory import MemoryConfigurationType
 from nsimf.models.Scheme import Scheme
 from nsimf.models.Update import Update
 from nsimf.models.Update import UpdateConfiguration
@@ -15,12 +17,9 @@ class HIOM(Example):
         n = 400
 
         g = nx.watts_strogatz_graph(n, 2, 0.02)
+
         cfg = {
-            'save_disk': False,
-            # 'path': './out.txt',
-            # 'save_interval': 100,
-            'state_memory': 0,
-            'memory_interval': 1
+            'utility': False,
         }
         self.model = Model(g, ModelConfiguration(cfg))
 

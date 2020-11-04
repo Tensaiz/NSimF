@@ -4,6 +4,8 @@ import copy
 import numpy as np
 import networkx as nx
 
+from nsimf.models.Memory import MemoryConfiguration
+from nsimf.models.Memory import MemoryConfigurationType
 from nsimf.models.Update import Update
 from nsimf.models.Update import UpdateType
 from nsimf.models.Update import UpdateConfiguration
@@ -23,31 +25,32 @@ class ConfigurationException(Exception):
 
 class ModelConfiguration(object):
     """
-    Configuration for the visualizer
-    TODO: Validate attributes
+    Configuration for the model
     """
-    def __init__(self, iterable=(), **kwargs):
-        self.init()
-        self.__dict__.update(iterable, **kwargs)
-        self.validate()
-
-    def init(self):
-        self.utility = False
-        self.save_disk = False
-        self.state_memory = 0
-        self.save_interval = 0
-        self.memory_interval = 1
-        self.path = './output/'
-
-    def validate(self):
-        pass
-
+    def __init__(self, cfg=None):
+        cfg = cfg if cfg else {}
+        cfg_keys = list(cfg.keys())
+        self.utility = False if 'utility' not in cfg_keys else cfg['utility']
+        self.state_memory_config = \
+            MemoryConfiguration(MemoryConfigurationType.STATE, {
+                'memory_size': 0
+            }) \
+            if 'state_memory_config' not in cfg_keys \
+            else cfg['state_memory_config']
+        self.utility_memory_config = MemoryConfiguration(MemoryConfigurationType.UTILITY) \
+            if 'utility_memory_config' not in cfg_keys \
+            else cfg['utility_memory_config']
+        self.adjacency_memory_config = \
+            MemoryConfiguration(MemoryConfigurationType.ADJACENCY, {
+                'memory_size': -1
+            }) \
+            if 'adjacency_memory_config' not in cfg_keys \
+            else cfg['adjacency_memory_config']
 
 class Model(object, metaclass=ABCMeta):
     """
     Partial Abstract Class defining a model
     """
-
     def __init__(self, graph, config=None, seed=None):
         self.graph = graph
         self.new_graph = copy.deepcopy(graph)
@@ -133,7 +136,22 @@ class Model(object, metaclass=ABCMeta):
         """
         Get all the nodes' states from the n'th previous saved iteration
         """
-        return self.simulation_output[-n - 1]
+        available_iterations = list(self.simulation_output['states'].keys())
+        return self.simulation_output['states'][available_iterations[-n - 1]]
+
+    def get_previous_nodes_utility(self, n):
+        """
+        Get all the nodes' utility from the n'th previous saved iteration
+        """
+        available_iterations = list(self.simulation_output['utility'].keys())
+        return self.simulation_output['utility'][available_iterations[-n - 1]]
+
+    def get_previous_nodes_adjacency(self, n):
+        """
+        Get all the adjacency matrix from the n'th previous saved iteration
+        """
+        available_iterations = list(self.simulation_output['adjacency'].keys())
+        return self.simulation_output['adjacency'][available_iterations[-n - 1]]
 
     def add_update(self, fun, args=None, condition=None, get_nodes=False, update_type=None):
         arguments = args if args else {}
@@ -198,46 +216,100 @@ class Model(object, metaclass=ABCMeta):
         return list(self.graph.neighbors(node))
 
     def simulate(self, n, show_tqdm=True):
-        self.simulation_output = []
-        if self.config.save_disk:
-            with open(self.config.path, 'w') as f:
-                f.write('# Output array shape:\n#({0}, {1}, {2})\n'.format(int(n / self.config.save_interval), len(self.nodes), len(self.state_names)))
-                self.simulation_steps(n, show_tqdm, f)
-        else:
-            self.simulation_steps(n, show_tqdm)
+        self.simulation_output = {
+            'states': {},
+            'adjacency': {},
+            'utility': {}
+        }
+        self.prepare_output(n)
+        self.simulation_steps(n, show_tqdm)
         return self.simulation_output
 
-    def simulation_steps(self, n, show_tqdm, f=None):
+    def prepare_output(self, n):
+        n_nodes = len(self.graph.nodes)
+        if self.config.state_memory_config.save_disk:
+            with open(self.config.state_memory_config.path, 'w') as f:
+                f.write(self.config.state_memory_config.get_description_string(n, n_nodes, len(self.state_names)))
+        if self.config.adjacency_memory_config.save_disk:
+            with open(self.config.adjacency_memory_config.path, 'w') as f:
+                f.write(self.config.adjacency_memory_config.get_description_string(n, n_nodes, n_nodes))
+        if self.config.utility_memory_config.save_disk:
+            with open(self.config.utility_memory_config.path, 'w') as f:
+                f.write(self.config.utility_memory_config.get_description_string(n, n_nodes, n_nodes))
+
+    def simulation_steps(self, n, show_tqdm):
+        self.store_simulation_step()
         if show_tqdm:
             for _ in tqdm.tqdm(range(0, n)):
-                self.simulation_step(f)
+                self.simulation_step()
         else:
             for _ in range(0, n):
-                self.simulation_step(f)
+                self.simulation_step()
 
-    def simulation_step(self, f):
-        iteration_result = self.iteration()
-        if f and self.current_iteration % self.config.save_interval == 0:
-            np.savetxt(f, iteration_result)
-            f.write('# Iteration {0}\n'.format(self.current_iteration))
-        if self.config.state_memory != -1 and self.current_iteration % self.config.memory_interval == 0:
-            self.simulation_output.append(copy.deepcopy(iteration_result))
-        if self.config.state_memory > 0 and len(self.simulation_output) > self.config.state_memory:
-            self.simulation_output = []
+    def simulation_step(self):
+        self.iteration()
+        self.write_simulation_step()
+        self.store_simulation_step()
+
+    def write_simulation_step(self):
+        n_nodes = len(self.graph.nodes)
+        if self.config.state_memory_config.save_disk and self.current_iteration % self.config.state_memory_config.save_interval == 0:
+            self.write_states_iteration(n_nodes)
+        if self.config.utility_memory_config.save_disk and self.current_iteration % self.config.utility_memory_config.save_interval == 0:
+            self.write_utility_iteration(n_nodes)
+        if self.config.adjacency_memory_config.save_disk and self.current_iteration % self.config.adjacency_memory_config.save_interval == 0:
+            self.write_adjacency_iteration(n_nodes)
+
+    def write_states_iteration(self, n_nodes):
+        with open(self.config.state_memory_config.path, 'a') as f:
+            f.write('# Iteration {0} - ({2}, {3})\n'.format(self.current_iteration, n_nodes, len(self.state_names)))
+            np.savetxt(f, self.node_states)
+
+    def write_utility_iteration(self, n_nodes):
+        with open(self.config.utility_memory_config.path, 'a') as f:
+            f.write('# Iteration {0} - ({2}, {3})\n'.format(self.current_iteration, n_nodes, n_nodes))
+            np.savetxt(f, self.edge_utility)
+
+    def write_adjacency_iteration(self, n_nodes):
+        with open(self.config.adjacency_memory_config.path, 'a') as f:
+            f.write('# Iteration {0} - ({2}, {3})\n'.format(self.current_iteration, n_nodes, n_nodes))
+            np.savetxt(f, self.adjacency)
+
+    def store_simulation_step(self):
+        self.store_states_iteration()
+        self.store_utility_iteration()
+        self.store_adjacency_iteration()
+
+    def store_states_iteration(self):
+        if self.config.state_memory_config.memory_size != -1 and self.current_iteration % self.config.state_memory_config.memory_interval == 0:
+            self.simulation_output['states'][self.current_iteration] = copy.deepcopy(self.node_states)
+        if self.config.state_memory_config.memory_size > 0 and len(self.simulation_output) > self.config.state_memory_config.memory_size:
+            self.simulation_output['states'] = {}
+
+    def store_utility_iteration(self):
+        if self.config.utility_memory_config.memory_size != -1 and self.current_iteration % self.config.utility_memory_config.memory_interval == 0:
+            self.simulation_output['utility'][self.current_iteration] = copy.deepcopy(self.edge_utility)
+        if self.config.utility_memory_config.memory_size > 0 and len(self.simulation_output) > self.config.utility_memory_config.memory_size:
+            self.simulation_output['utility'] = {}
+
+    def store_adjacency_iteration(self):
+        if self.config.adjacency_memory_config.memory_size != -1 and self.current_iteration % self.config.adjacency_memory_config.memory_interval == 0:
+            self.simulation_output['adjacency'][self.current_iteration] = copy.deepcopy(self.adjacency)
+        if self.config.adjacency_memory_config.memory_size > 0 and len(self.simulation_output) > self.config.adjacency_memory_config.memory_size:
+            self.simulation_output['adjacency'] = {}
 
     def iteration(self):
         self.iteration_calculation()
         self.iteration_assignment()
         self.calculate_properties()
         self.prepare_next_iteration()
-        return self.node_states
 
     def iteration_calculation(self):
         # For every scheme
         for scheme in self.schemes:
             if self.inactive_scheme(scheme):
                 continue
-            scheme_nodes = scheme.sample()
+            scheme_nodes = np.array(scheme.sample())
             # For all the updates in the scheme
             for update in scheme.updates:
                 update_nodes = self.valid_update_condition_nodes(update, scheme_nodes)
@@ -298,6 +370,9 @@ class Model(object, metaclass=ABCMeta):
         setattr(self, var, np.delete(getattr(self, var), removables, axis=1))
 
     def network_nodes_add(self, new_nodes, _):
+        """
+        Add a list of new node dictionaries to the model
+        """
         node_index = len(self.new_node_states)
         for node in new_nodes:
             self.initialize_new_node()
@@ -317,6 +392,13 @@ class Model(object, metaclass=ABCMeta):
         self.graph_changed = True
 
     def handle_node_initialization(self, index, node):
+        """
+        :param index int: The index of the node in the graph
+        :param node dict: a node dictionary of the form:
+            key (str): 'neighbors', value (list[tuple]): (neighbor_index, utility_in, utility_out)
+            key (str): 'states', value (dict): { 'state_name' (str) : state_value (number) }
+        Initialize a node by setting the utility of the neighbors and setting the node states
+        """
         self.set_node_neighbor_utilities(index, node['neighbors'])
         self.set_new_node_states(index, node['states'])
 
@@ -326,7 +408,7 @@ class Model(object, metaclass=ABCMeta):
 
     def network_edges_change(self, change, update_nodes):
         for origin, node_changes in change.items():
-            for adjacency_change_type, neighbors in node_changes:
+            for adjacency_change_type, neighbors in node_changes.items():
                 if adjacency_change_type == 'overwrite':
                     self.handle_adjacency_node_overwrite(origin, neighbors)
                 elif adjacency_change_type == 'add':
@@ -376,6 +458,11 @@ class Model(object, metaclass=ABCMeta):
         self.new_edge_utility[neighbor_indices, origin] = neighbor_ingoing_utility
 
     def neighbor_update_to_var(self, var_type, neighbors):
+        """
+        Get a list of neighbor indices, ingoing utililty values, or outgoing utility values
+        The input format is: [(neighbor index, utility_in, utility_out)]
+        If a value is not set, a 0 is returned for that neighbor
+        """
         if var_type == 'indices':
             return [neighbor[0] if (isinstance(neighbor, tuple) or isinstance(neighbor, list)) \
                     else neighbor \
@@ -412,7 +499,7 @@ class Model(object, metaclass=ABCMeta):
     def valid_update_condition_nodes(self, update, scheme_nodes):
         if not update.condition:
             return scheme_nodes
-        return update.condition.get_valid_nodes((scheme_nodes, self.node_states, self.adjacency, None))
+        return update.condition.get_valid_nodes((scheme_nodes, self.node_states, self.adjacency, self.edge_utility))
 
     def iteration_assignment(self):
         self.node_states = self.new_node_states[:]

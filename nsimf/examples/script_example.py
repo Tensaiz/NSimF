@@ -4,22 +4,25 @@ import matplotlib.pyplot as plt
 
 from nsimf.models.Model import Model
 from nsimf.models.Model import ModelConfiguration
+from nsimf.models.Memory import MemoryConfiguration
+from nsimf.models.Memory import MemoryConfigurationType
 from nsimf.models.conditions.Condition import ConditionType
 from nsimf.models.conditions.ThresholdCondition import ThresholdCondition
 from nsimf.models.conditions.ThresholdCondition import ThresholdOperator
 from nsimf.models.conditions.ThresholdCondition import ThresholdConfiguration
 from nsimf.models.conditions.StochasticCondition import StochasticCondition
 
+
 if __name__ == "__main__":
     # Network definition
-    g = nx.random_geometric_graph(250, 0.125)
+    g = nx.random_geometric_graph(200, 0.125)
+
     cfg = {
         'utility': True,
-        'save_disk': False,
-        # 'path': './out.txt',
-        # 'save_interval': 10,
-        'state_memory': 0,
-        'memory_interval': 1
+        'adjacency_memory_config': \
+            MemoryConfiguration(MemoryConfigurationType.ADJACENCY, {
+                'memory_size': 0
+            })
     }
     model = Model(g, ModelConfiguration(cfg))
 
@@ -49,7 +52,8 @@ if __name__ == "__main__":
     }
 
     def inital_utility():
-        return np.ones((250, 250))
+        n_nodes = len(g.nodes())
+        return np.ones((n_nodes, n_nodes))
 
     def update_C(constants):
         c = model.get_state('C') + constants['b'] * model.get_state('A') * np.minimum(1, 1-model.get_state('C')) - constants['d'] * model.get_state('C')
@@ -73,11 +77,19 @@ if __name__ == "__main__":
     def update_A(constants):
         return {'A': constants['q'] * model.get_state('V') + np.minimum((np.random.poisson(model.get_state('lambda'))/7), constants['q']*(1 - model.get_state('V')))}
 
-    def reduce_A(nodes):
-        return {'A': model.get_nodes_state(nodes, 'A') - 0.2}
-
     def update_utility():
         return model.get_utility()
+
+    def remove_neighbor(nodes):
+        adjacency = model.get_adjacency()
+
+        removable_neighbors = {
+            node: {'remove': [np.random.choice(np.where(adjacency[node] == 1)[0])]} for node in nodes
+        }
+
+        return {
+            'edge_change': removable_neighbors
+        }
 
     # Model definition
     model.constants = constants
@@ -89,28 +101,33 @@ if __name__ == "__main__":
     model.add_update(update_lambda, {'constants': model.constants})
     model.add_update(update_A, {'constants': model.constants})
 
-    condition_stochastic = StochasticCondition(ConditionType.STATE, 0.5)
-    condition_threshold_cfg = ThresholdConfiguration(ThresholdOperator.GE, 0.7, state='A')
-    condition_threshold = ThresholdCondition(ConditionType.STATE, condition_threshold_cfg, chained_condition=condition_stochastic)
-    model.add_update(reduce_A, condition=condition_threshold, get_nodes=True)
-
     model.add_utility_update(update_utility)
+
+    condition_stochastic_nb = StochasticCondition(ConditionType.STATE, 0.1)
+    condition_threshold_nb_cfg = ThresholdConfiguration(ThresholdOperator.GE, 1)
+    condition_nb = ThresholdCondition(ConditionType.ADJACENCY, condition_threshold_nb_cfg, chained_condition=condition_stochastic_nb)
+
+    condition_threshold_cfg = ThresholdConfiguration(ThresholdOperator.GE, 0.75, state='A')
+    condition_threshold_network = ThresholdCondition(ConditionType.STATE, condition_threshold_cfg, chained_condition=condition_nb)
+    model.add_network_update(remove_neighbor, condition=condition_threshold_network, get_nodes=True)
 
     model.set_initial_state(initial_state, {'constants': model.constants})
     model.set_initial_utility(inital_utility)
 
-    iterations = model.simulate(100)
+    output = model.simulate(100)
 
-    A = [np.mean(it[:, 5]) for it in iterations]
-    C = [np.mean(it[:, 0]) for it in iterations]
+    state_values = output['states'].values()
 
-    E = [np.mean(it[:, 2]) for it in iterations]
-    lmd = [np.mean(it[:, 4]) for it in iterations]
+    A = [np.mean(sv[:, 5]) for sv in state_values]
+    C = [np.mean(sv[:, 0]) for sv in state_values]
 
-    S = [np.mean(it[:, 1]) for it in iterations]
-    V = [np.mean(it[:, 3]) for it in iterations]
+    E = [np.mean(sv[:, 2]) for sv in state_values]
+    lmd = [np.mean(sv[:, 4]) for sv in state_values]
 
-    x = np.arange(0, len(iterations))
+    S = [np.mean(sv[:, 1]) for sv in state_values]
+    V = [np.mean(sv[:, 3]) for sv in state_values]
+
+    x = np.arange(0, len(state_values))
     plt.figure()
 
     plt.subplot(221)
@@ -147,5 +164,5 @@ if __name__ == "__main__":
         'plot_title': 'Self control vs craving simulation'
     }
 
-    model.configure_visualization(visualization_config, iterations)
+    model.configure_visualization(visualization_config, output)
     model.visualize('animation')

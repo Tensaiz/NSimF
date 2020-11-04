@@ -1,6 +1,8 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum
 
+import numpy as np
+
 __author__ = "Mathijs Maijer"
 __email__ = "m.f.maijer@gmail.com"
 

@@ -40,7 +40,7 @@ class StochasticCondition(Condition):
 
     def random_sample(self, nodes):
         sampled_probabilities = np.random.random_sample(len(nodes))
-        return np.where(sampled_probabilities < self.probability)[0]
+        return nodes[np.where(sampled_probabilities < self.probability)[0]]
 
     def test_states(self, nodes):
         pass

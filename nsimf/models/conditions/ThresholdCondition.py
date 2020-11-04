@@ -1,4 +1,5 @@
 import operator
+import warnings
 from enum import Enum
 
 import numpy as np
@@ -47,6 +48,8 @@ class ThresholdCondition(Condition):
             raise ValueError('Configuration object should be of class ThresholdConfiguration')
         if self.condition_type == ConditionType.STATE and not self.config.state:
             raise ValueError('A state should be provided when using state type')
+        if self.condition_type != ConditionType.STATE and self.config.state:
+            warnings.warn('The condition type has not been set to state, but a state has been set. The set state will be ignored')
 
     def set_state_index(self, index):
         self.config.state_index = index
@@ -70,9 +73,12 @@ class ThresholdCondition(Condition):
         return condition_type_to_arguments_map[self.condition_type]
 
     def test_states(self, nodes, states):
+        """
+        Find the indices of nodes for which the threshold operator holds for the set state index
+        """
         if not self.config.state_index:
             raise ValueError('State index has not been set')
-        return np.where(self.config.threshold_operator.value(states[nodes, self.config.state_index], self.config.threshold))[0]
+        return nodes[np.where(self.config.threshold_operator.value(states[nodes, self.config.state_index], self.config.threshold))[0]]
 
     def test_utility(self, nodes, utility_matrix):
         """
@@ -80,7 +86,7 @@ class ThresholdCondition(Condition):
 
         Returns indices of the nodes for which `threshold operator(utility_edge, condition.threshold)` is true
         """
-        return np.unique(np.where(self.config.threshold_operator.value(utility_matrix, self.config.threshold))[0])
+        return np.unique(np.where(self.config.threshold_operator.value(utility_matrix[nodes], self.config.threshold))[0])
 
     def test_adjacency(self, nodes, adjacency_matrix):
         """
@@ -88,4 +94,4 @@ class ThresholdCondition(Condition):
 
         Returns indices of the nodes for which: `threshold operator(n_neighbors, condition.threshold)` is true
         """
-        return np.where(self.config.threshold_operator.value(np.sum(adjacency_matrix, 1), self.config.threshold))[0]
+        return nodes[np.where(self.config.threshold_operator.value(np.sum(adjacency_matrix[nodes], 1), self.config.threshold))[0]]
